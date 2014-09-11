@@ -89,11 +89,13 @@ Object* Object_new(char* type_c, Object* parent) {
     return object;
 }
 
-char* ___undefined = "null";
-Symbol __undefined = {.value = &___undefined, .len = 4};
+char* ___undefined = "undefined";
+Symbol __undefined = {.value = &___undefined, .len = 9};
 Object _undefined = {.type = &__undefined};
 
-void Object_delete(Object* object) {
+void Object_delete(Object* object);
+
+void Object_free(Object* object) {
     unsigned int i;
     if (object->len != 0) {
         for (i = 0; i < object->len; ++i) {
@@ -119,10 +121,25 @@ void Object_delete(Object* object) {
     Symbol_delete(object->type);
     free(object->keys);
     free(object->values);
+}
+
+void Object_delete(Object* object) {
+    Object_free(object);
     free(object);
 }
 
-void Object_set(Object* object, char* key, Object* value) {
+void Object_set(Object* object, Object* value) {
+    Object_free(object);
+    *object = *value;
+}
+
+Object* Object_undefined(void) {
+    Object* new_object = Object_new("undefined", undefined);
+    
+    return new_object;
+}
+
+Object* Object_get(Object* object, char* key) {
     int position = Symbol_in_array(object->keys, object->len, key);
     if (position == -1) {
         if (object->len == object->size) {
@@ -130,22 +147,13 @@ void Object_set(Object* object, char* key, Object* value) {
             object->keys = (Symbol**) realloc(object->keys, sizeof(Symbol*) * object->size);
             object->values = (Object**) realloc(object->values, sizeof(Object*) * object->size);
         }
-        value->parent = object;
+        Object* new_value = Object_undefined();
         object->keys[object->len] = Symbol_new(key);
-        object->values[object->len] = value;
+        object->values[object->len] = new_value;
         object->len++;
+        return new_value;
     } else {
-        Object_delete(object->values[position]);
-        object->values[position] = value;
-    }
-}
-
-Object* Object_get(Object* object, char* key) {
-    int position = Symbol_in_array(object->keys, object->len, key);
-    if (position == -1) {
-        return undefined;
-    } else {
-        return (object->values)[position];
+        return object->values[position];
     }
 }
 
@@ -175,7 +183,7 @@ Object* Object_str(char* value) {
     Object* new_object = Object_new("str", undefined);
     new_object->value.c = new_value;
 
-    Object_set(new_object, "len", Object_int(strlen(value)));
+    Object_set(Object_get(new_object, "len"), Object_int(strlen(value)));
     return new_object;
 }
 
@@ -245,12 +253,12 @@ bool* Object_bool_value(Object* object) {
 }
 
 Object* Object_add(Object* A, Object* B) {
-    if (Object_istype(A, "null") || Object_istype(B, "null")) {
+    if (Object_istype(A, "undefined") || Object_istype(B, "undefined")) {
         return undefined;
     } else if (Object_istype(A, "str")) {
         if (Object_istype(B, "str")) {
-            int A_len = Object_int_value(Object_get(A, "len"));
-            int B_len = Object_int_value(Object_get(B, "len"));
+            int A_len = *Object_int_value(Object_get(A, "len"));
+            int B_len = *Object_int_value(Object_get(B, "len"));
             char new_string[A_len + B_len + 1];
             int i;
             for (i = 0; i < A_len; i++) {
@@ -301,19 +309,22 @@ Object* Object_add(Object* A, Object* B) {
             return undefined;
         }
     } else {
+        /*
         Object* new_object = Object_new(Object_typeof(A), undefined);
         int i;
         if (A->len != 0) {
             for (i = 0; i < A->len; i++) {
-                Object_set(new_object, *(A->keys[i]->value), A->values[i]);
+                Object_set(new_object, *(A->keys[i]->value), A->values[i]); // FIXME
             }
         }
         if (B->len != 0) {
             for (i = 0; i < B->len; i++) {
-                Object_set(new_object, *(B->keys[i]->value), B->values[i]);
+                Object_set(new_object, *(B->keys[i]->value), B->values[i]); // FIXME
             }
         }
         return new_object;
+        */
+        return undefined;
     }
 }
 
@@ -441,7 +452,7 @@ void print_Object(Object* object, int level) {
     }
     small[level] = '\0';
     extra[level + 1] = '\0';
-    if (Object_istype(object, "null")) {
+    if (Object_istype(object, "undefined")) {
         printf("undefined\n");
     } else if (Object_istype(object, "int")) {
         printf("%d\n", *Object_int_value(object));
@@ -496,14 +507,8 @@ void print_Object_memory(Object* object) {
 
 int main(int argc, const char* argv[]) {
     Object* A = Object_new("A", undefined);
-    Object_set(A, "A", Object_int(9));
-    Object_set(A, "B", Object_bool(true));
-
-    Object* B = Object_new("B", undefined);
-    Object_set(B, "B", Object_long(200L));
-    Object_set(B, "C", Object_str("YYY"));
-
-    print_Object(Object_add(A, B), 0);
+    Object_set(Object_get(A, "b"), Object_int(7));
+    print_Object(A, 0);
 
     return 0;
 }

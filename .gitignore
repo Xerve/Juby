@@ -27,3 +27,6 @@ obj/
 *.depend
 *.layout
 *.cscope_file_list
+
+# Zed
+.zedstate
