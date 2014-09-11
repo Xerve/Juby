@@ -65,7 +65,6 @@ typedef struct base_object {
     struct base_object** values;
     unsigned int len;
     unsigned int size;
-    struct base_object* parent;
 } Object;
 
 char* Object_typeof(Object* object) {
@@ -76,11 +75,10 @@ bool Object_istype(Object* object, char* type) {
     return Symbol_equals(object->type, type);
 }
 
-Object* Object_new(char* type_c, Object* parent) {
+Object* Object_new(char* type_c) {
     Symbol* type = Symbol_new(type_c);
     Object* object = malloc(sizeof(Object));
     object->type = type;
-    object->parent = parent;
     object->keys = malloc(sizeof(Symbol*) * 5);
     object->values = malloc(sizeof(Object*) * 5);
     object->len = 0;
@@ -134,7 +132,7 @@ void Object_set(Object* object, Object* value) {
 }
 
 Object* Object_undefined(void) {
-    Object* new_object = Object_new("undefined", undefined);
+    Object* new_object = Object_new("undefined");
     
     return new_object;
 }
@@ -161,7 +159,7 @@ Object* Object_int(int value) {
     int* new_value = malloc(sizeof(value));
     *new_value = value;
 
-    Object* new_object = Object_new("int", undefined);
+    Object* new_object = Object_new("int");
     new_object->value.i = new_value;
 
     return new_object;
@@ -180,7 +178,7 @@ Object* Object_str(char* value) {
     char** new_value = malloc(sizeof(value));
     *new_value = value;
 
-    Object* new_object = Object_new("str", undefined);
+    Object* new_object = Object_new("str");
     new_object->value.c = new_value;
 
     Object_set(Object_get(new_object, "len"), Object_int(strlen(value)));
@@ -199,7 +197,7 @@ Object* Object_long(long value) {
     long* new_value = malloc(sizeof(long));
     *new_value = value;
 
-    Object* new_object = Object_new("long", undefined);
+    Object* new_object = Object_new("long");
     new_object->value.l = new_value;
 
     return new_object;
@@ -218,7 +216,7 @@ Object* Object_num(float value) {
     float* new_value = malloc(sizeof(float));
     *new_value = value;
 
-    Object* new_object = Object_new("num", undefined);
+    Object* new_object = Object_new("num");
     new_object->value.f = new_value;
 
     return new_object;
@@ -237,7 +235,7 @@ Object* Object_bool(bool value) {
     bool* new_value = malloc(sizeof(bool));
     *new_value = value;
 
-    Object* new_object = Object_new("bool", undefined);
+    Object* new_object = Object_new("bool");
     new_object->value.b = new_value;
 
     return new_object;
@@ -250,6 +248,32 @@ bool* Object_bool_value(Object* object) {
     }
 
     return object->value.b;
+}
+
+Object* Object_copy(Object* object) {
+    if (Object_istype(object, "int")) {
+        return Object_int(*Object_int_value(object));
+    } else if (Object_istype(object, "num")) {
+        return Object_num(*Object_num_value(object));
+    } else if (Object_istype(object, "long")) {
+        return Object_long(*Object_long_value(object));
+    } else if (Object_istype(object, "str")) {
+        return Object_str(*Object_str_value(object));
+    } else if (Object_istype(object, "bool")) {
+        return Object_bool(*Object_bool_value(object));
+    } else {
+        Object* new_object = Object_new(Object_typeof(object));
+        int i;
+        if (object->len = 0) {
+            return new_object;
+        } else {
+            for(i = 0; i < object->len; i++) {
+                Object_set(Object_get(new_object, *(object->keys[i]->value)), Object_copy(object->values[i]));
+            }
+            
+            return new_object;
+        }
+    }
 }
 
 Object* Object_add(Object* A, Object* B) {
@@ -309,22 +333,19 @@ Object* Object_add(Object* A, Object* B) {
             return undefined;
         }
     } else {
-        /*
-        Object* new_object = Object_new(Object_typeof(A), undefined);
+        Object* new_object = Object_new(Object_typeof(A));
         int i;
         if (A->len != 0) {
             for (i = 0; i < A->len; i++) {
-                Object_set(new_object, *(A->keys[i]->value), A->values[i]); // FIXME
+                Object_set(Object_get(new_object, *(A->keys[i]->value)), Object_copy(A->values[i]));
             }
         }
         if (B->len != 0) {
             for (i = 0; i < B->len; i++) {
-                Object_set(new_object, *(B->keys[i]->value), B->values[i]); // FIXME
+                Object_set(Object_get(new_object, *(B->keys[i]->value)), Object_copy(B->values[i]));
             }
         }
         return new_object;
-        */
-        return undefined;
     }
 }
 
@@ -506,9 +527,22 @@ void print_Object_memory(Object* object) {
 }
 
 int main(int argc, const char* argv[]) {
-    Object* A = Object_new("A", undefined);
+    Object* A = Object_new("A");
     Object_set(Object_get(A, "b"), Object_int(7));
-    print_Object(A, 0);
 
+    Object* B = Object_new("B");
+    Object_set(Object_get(B, "b"), Object_str("PPPPPPP"));
+    
+    Object* C = Object_new("C");
+    Object_set(Object_get(C, "C"), Object_str("PPPPPPP"));
+    
+    Object* D = Object_new("D");
+    Object_set(Object_get(D, "D"), Object_str("PPPPPPP"));
+
+    Object* E = Object_new("E");
+    Object_set(Object_get(E, "E"), Object_str("PPPPPPP"));
+        
+    print_Object(Object_add(A, Object_add(B, Object_add(C, Object_add(D, E)))), 0);
+    
     return 0;
 }
