@@ -87,13 +87,22 @@ Object* Object_new(char* type_c) {
     return object;
 }
 
-char* ___undefined = "undefined";
+char* ___undefined = "__NULL__";
 Symbol __undefined = {.value = &___undefined, .len = 9};
 Object _undefined = {.type = &__undefined};
 
-void Object_delete(Object* object);
+Object* Object_delete(Object* object);
+Object* print_Object(Object* object, int level);
 
-void Object_free(Object* object) {
+Object* Object_free(Object* object) {
+    if (object == NULL) {
+        return undefined;
+    }
+    
+    if (Object_istype(object, "__NULL__")) {
+        return undefined;
+    }
+    
     unsigned int i;
     if (object->len != 0) {
         for (i = 0; i < object->len; ++i) {
@@ -117,18 +126,32 @@ void Object_free(Object* object) {
     }
 
     Symbol_delete(object->type);
+    
     free(object->keys);
     free(object->values);
+    
+    return undefined;
 }
 
-void Object_delete(Object* object) {
+Object* Object_delete(Object* object) {
+    if (object == NULL) {
+        return undefined;
+    }
+    
     Object_free(object);
-    free(object);
+    // free(object);
+    object = undefined;
+    return undefined;
 }
 
-void Object_set(Object* object, Object* value) {
+Object* Object_set(Object* object, Object* value) {
+    if (Object_istype(object, "__NULL__")) {
+        puts("Cannot set to empty object!");
+        exit(1);
+    }
     Object_free(object);
     *object = *value;
+    return object;
 }
 
 Object* Object_undefined(void) {
@@ -151,7 +174,16 @@ Object* Object_get(Object* object, char* key) {
         object->len++;
         return new_value;
     } else {
-        return object->values[position];
+        if (object->values[position] != NULL) {
+            puts("NOT NULL");
+            print_Object(object->values[position], 0);
+            return object->values[position];
+        } else {
+            puts("NULL");
+            free(object->values[position]);
+            object->values[position] = Object_undefined();
+            return object->values[position];
+        }
     }
 }
 
@@ -463,7 +495,7 @@ Object* Object_divide(Object* A, Object* B) {
     }
 }
 
-void print_Object(Object* object, int level) {
+Object* print_Object(Object* object, int level) {
     char small[level + 1];
     char extra[level + 2];
     int i;
@@ -497,14 +529,17 @@ void print_Object(Object* object, int level) {
                 printf("%s%s: ", extra, *(object->keys[i]->value));
                 print_Object(object->values[i], level + 1);
             }
+            
             printf("%s} [%s]\n", small, Object_typeof(object));
         } else {
             printf(" } [%s]\n", Object_typeof(object));
         }
     }
+    
+    return object;
 }
 
-void print_Object_memory(Object* object) {
+Object* print_Object_memory(Object* object) {
     printf("$%p | ", object);
     if (Object_istype(object, "int")) {
         printf("%d\n", *Object_int_value(object));
@@ -524,25 +559,174 @@ void print_Object_memory(Object* object) {
             }
         }
     }
+    
+    return object;
+}
+
+char* substring(char* string, int position, int length) {
+    char* pointer = malloc(length+1);
+ 
+    int c;
+    for (c = 0 ; c < position - 1 ; c++) {
+        string++; 
+    }
+    
+    for (c = 0 ; c < length ; c++) {
+        *(pointer+c) = *string;      
+        string++;   
+    }
+    
+    *(pointer+c) = '\0';
+    
+    return pointer;
+}
+
+typedef struct base_tokens {
+    int len;
+    char* values[];
+} Tokens;
+
+Tokens* tokenize(char* input) {
+    input++;
+    int len = strlen(input) - 1;
+    int num_tokens = 1;
+    int point = 0;
+    int token;
+    bool in_str = false;
+    int paren_level = 0;
+
+    int i;
+    for(i = 0; i < len; i++) {
+        if (input[i] == ' ' && !in_str && paren_level == 0) {
+            num_tokens++;
+        } else if (input[i] == '\'') {
+            if (i != 0) {
+                if (input[i - 1] != '\\') {
+                    in_str = !in_str;
+                }
+            } else {
+                in_str = true;
+            }
+        } else if (input[i] == '(' && !in_str) {
+            paren_level++;
+        } else if (input[i] == ')' && !in_str) {
+            paren_level--;
+        }
+        
+        if (paren_level < 0) {
+            puts("Unexpected ) !");
+            exit(1);
+        }
+    }
+    
+    if (paren_level != 0) {
+        puts("Number of () don't match!");
+        exit(1);
+    }
+    
+    if (in_str) {
+        puts("Unended string!");
+        exit(1);
+    }
+    
+    int token_start[num_tokens];
+    int token_len[num_tokens];
+    
+    token_start[0] = 0;
+    for(i = 0; i < len; i++) {
+        if (input[i] == ' ' && !in_str && paren_level == 0) {
+            token_start[point + 1] = i + 1;
+            token_len[point] = i - token_start[point];
+            point++;
+        } else if (input[i] == '\'') {
+            if (i != 0) {
+                if (input[i - 1] != '\\') {
+                    in_str = !in_str;
+                }
+            } else {
+                in_str = true;
+            }
+        } else if (input[i] == '(' && !in_str) {
+            paren_level++;
+        } else if (input[i] == ')' && !in_str) {
+            paren_level++;
+        }
+    }
+    token_len[num_tokens - 1] = len - token_start[num_tokens - 1];
+    
+    Tokens* ret = malloc(sizeof(Tokens) + (num_tokens * sizeof(char*)));
+    ret->len = num_tokens;
+    
+    for (i = 0; i < num_tokens; i++) {
+        ret->values[i] = substring(input, token_start[i] + 1, token_len[i]);
+    }
+    
+    return ret;
+}
+
+Object* eval(Object* context, char* in_string) {
+    if (in_string[0] == '(' && in_string[strlen(in_string) - 1] == ')') {
+        Tokens* tokens = tokenize(in_string);
+        char** input = tokens->values;
+        int len = tokens->len;
+        
+        int i;
+        
+        if (len == 0) {
+            return undefined;
+        }
+        
+        if (!strcmp(input[0], "undefined")) {
+            return undefined;
+        }
+        
+        if (!strcmp(input[0], "get")) {
+            if (len < 3) {
+                puts("Invalid 'get':");
+                printf("(");
+                for (i = 0; i < len; i++) {
+                    if (i != 0) {
+                        printf(" ");
+                    }
+                    printf(input[i]);
+                }
+                puts(")");
+                exit(1);
+            } else {
+                if (!strcmp(input[1], "_")) {
+                    return Object_get(context, input[2]);
+                } else {
+                    return Object_get(eval(context, input[1]), input[2]);
+                }
+            }
+        } else if (!strcmp(input[0], "set")) {
+            if (len < 3) {
+                puts("Invalid 'set':");
+                printf("(");
+                for (i = 0; i < len; i++) {
+                    if (i != 0) {
+                        printf(" ");
+                    }
+                    printf(input[i]);
+                }
+                puts(")");
+                exit(1);
+            } else {
+                return Object_set(eval(context, input[1]), eval(context, input[2]));
+            }
+        }
+    } else {
+        puts("Unknown wrapper!");
+        exit(1);
+    }
 }
 
 int main(int argc, const char* argv[]) {
-    Object* A = Object_new("A");
-    Object_set(Object_get(A, "b"), Object_int(7));
-
-    Object* B = Object_new("B");
-    Object_set(Object_get(B, "b"), Object_str("PPPPPPP"));
-    
-    Object* C = Object_new("C");
-    Object_set(Object_get(C, "C"), Object_str("PPPPPPP"));
-    
-    Object* D = Object_new("D");
-    Object_set(Object_get(D, "D"), Object_str("PPPPPPP"));
-
-    Object* E = Object_new("E");
-    Object_set(Object_get(E, "E"), Object_str("PPPPPPP"));
-        
-    print_Object(Object_add(A, Object_add(B, Object_add(C, Object_add(D, E)))), 0);
+    Object* globals = Object_new("globals");
+    Object_set(Object_get(globals, "a"), Object_int(9));
+    Object_delete(Object_get(globals, "a"));
+    print_Object(Object_get(globals, "a"), 0);
+    //Object_delete(globals);
     
     return 0;
 }
