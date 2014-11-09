@@ -1,3 +1,5 @@
+#define isNullChar(X) (iscntrl(X) || isspace(X))
+
 char* substring(char* string, int position, int length) {
     char* pointer = malloc(length+1);
  
@@ -16,158 +18,149 @@ char* substring(char* string, int position, int length) {
     return pointer;
 }
 
-typedef struct _Tokens {
-    int len;
-    char* values[];
-} Tokens;
-
-Tokens* tokenize(char* input) {
-    input++;
-    int len = strlen(input) - 1;
-    int num_tokens = 1;
-    int point = 0;
-    int token;
-    bool in_str = false;
-    int paren_level = 0;
-
-    int i;
-    for(i = 0; i < len; i++) {
-        if (input[i] == ' ' && !in_str && paren_level == 0) {
-            num_tokens++;
-        } else if (input[i] == '\'') {
-            if (i != 0) {
-                if (input[i - 1] != '\\') {
-                    in_str = !in_str;
-                }
-            } else {
-                in_str = true;
-            }
-        } else if (input[i] == '(' && !in_str) {
-            paren_level++;
-        } else if (input[i] == ')' && !in_str) {
-            paren_level--;
-        }
-        
-        if (paren_level < 0) {
-            puts("Unexpected ) !");
-            exit(1);
-        }
+Object* eval(Object* context, char* input) {
+    if (!strcmp(input, "recover") || !strcmp(input, "(recover)")) {
+          recover(true);
+          return undefined;
+    } else if (_panic) {
+        return undefined;
     }
     
-    if (paren_level != 0) {
-        puts("Number of () don't match!");
-        exit(1);
-    }
+    int len = strlen(input);
+    double num;
     
-    if (in_str) {
-        puts("Unended string!");
-        exit(1);
-    }
-    
-    int token_start[num_tokens];
-    int token_len[num_tokens];
-    
-    token_start[0] = 0;
-    for(i = 0; i < len; i++) {
-        if (input[i] == ' ' && !in_str && paren_level == 0) {
-            token_start[point + 1] = i + 1;
-            token_len[point] = i - token_start[point];
-            point++;
-        } else if (input[i] == '\'') {
-            if (i != 0) {
-                if (input[i - 1] != '\\') {
-                    in_str = !in_str;
-                }
-            } else {
-                in_str = true;
-            }
-        } else if (input[i] == '(' && !in_str) {
-            paren_level++;
-        } else if (input[i] == ')' && !in_str) {
-            paren_level++;
-        }
-    }
-    token_len[num_tokens - 1] = len - token_start[num_tokens - 1];
-    
-    Tokens* ret = malloc(sizeof(Tokens) + (num_tokens * sizeof(char*)));
-    ret->len = num_tokens;
-    
-    for (i = 0; i < num_tokens; i++) {
-        ret->values[i] = substring(input, token_start[i] + 1, token_len[i]);
-    }
-    
-    return ret;
-}
-
-void delete_Tokens(Tokens* tokens) {
-    int i;
-    for (i = 0; i < tokens->len; ++i) {
-        free(tokens->values[i]);
-    }
-    
-    free(tokens->values);
-    free(tokens);
-}
-
-Object* eval(Object* context, char* in_string) {
-    if (in_string[0] == '(' && in_string[strlen(in_string) - 1] == ')') {
-        Tokens* tokens = tokenize(in_string);
-        char** input = tokens->values;
-        int len = tokens->len;
-        
+    if (input[0] == '(') {
         int i;
+        int position = 0;
+        int start = 0;
+        int end = 0;
+        int num_tokens = 0;
+        bool in_str = false;
+        int paren_level = 0;
+        char last = '\0';
         
-        if (len == 0) {
-            return undefined;
-        }
-        
-        if (!strcmp(input[0], "undefined")) {
-            return new_Undefined();
-        }
-        
-        if (!strcmp(input[0], "get")) {
-            if (len < 3) {
-                puts("Invalid 'get':");
-                printf("(");
-                for (i = 0; i < len; i++) {
-                    if (i != 0) {
-                        printf(" ");
-                    }
-                    printf(input[i]);
+        for(i = 0; i < len; ++i) {
+            if (paren_level >= 0) {
+                if (!isNullChar(input[i]) && (isNullChar(last) || num_tokens == 0) && !in_str && paren_level == 1 && input[i] != ')') {
+                    ++num_tokens;
+                } 
+                
+                if (input[i] == '\'') {
+                    in_str = !in_str;
+                } else if (input[i] == '(') {
+                    ++paren_level;
+                } else if (input[i] == ')') {
+                    --paren_level;
                 }
-                puts(")");
-                exit(1);
-            } else {
-                if (!strcmp(input[1], "_")) {
-                    return get_Property(context, input[2]);
-                } else {
-                    return get_Property(eval(context, input[1]), input[2]);
-                }
-            }
-        } else if (!strcmp(input[0], "set")) {
-            if (len < 3) {
-                puts("Invalid 'set':");
-                printf("(");
-                for (i = 0; i < len; i++) {
-                    if (i != 0) {
-                        printf(" ");
-                    }
-                    printf(input[i]);
-                }
-                puts(")");
-                exit(1);
-            } else {
-                if (!strcmp(input[1], "_")) {
-                    return set_Property(context, input[2], eval(context, input[3]));
-                } else {
-                    return set_Property(eval(context, input[1]), input[2], eval(context, input[3]));
-                }
+                
+                last = input[i];
             }
         }
         
-        delete_Tokens(tokens);
+        if (paren_level > 0) {
+            panic("Too many \"(\"!", NULL);
+        } else if (paren_level < 0) {
+            panic("Too many \")\"!", NULL);
+        } else if (in_str) {
+            panic("Too many \"'\"!", NULL);
+        }
+        
+        in_str = false;
+        paren_level = 0;
+        char* tokens[num_tokens];
+        for(i = 0; i < len; ++i) {
+            if (paren_level >= 0) {
+                if (!isNullChar(input[i]) && (isNullChar(last) || i == 1) && !in_str && paren_level == 1) {
+                   start = i;
+                }
+                
+                if (input[i] == '\'') {
+                    in_str = !in_str;
+                } else if (input[i] == '(') {
+                    ++paren_level;
+                } else if (input[i] == ')') {
+                    --paren_level;
+                }
+    
+                if (isNullChar(input[i]) && !isNullChar(last) && !in_str && paren_level == 1 && start != 0) {
+                    end = i;
+                } else if (paren_level == 0 && start != 0) {
+                    end = i;
+                }
+                
+                if (start != 0 && end != 0) {
+                    tokens[position] = substring(input, start + 1, end - start);
+                    ++position;
+                    start = 0;
+                    end = 0;
+                }
+                
+                last = input[i];
+            }
+        }
+        
+        Object* ret = undefined;
+        
+        if (num_tokens == 0) {
+            ret = undefined;
+        } else if (!strcmp(tokens[0], "juby")) {
+            for (i = 1; i < num_tokens; ++i) {
+                ret = eval(context, tokens[i]);
+            }
+        } else if (!strcmp(tokens[0], "panic")) {
+            panic("User panic!", input);            
+        } else if (!strcmp(tokens[0], "print")) {
+            if (num_tokens < 2) {
+                panic("Invalid 'print':", input);
+            } else {
+                ret = print_Object(eval(context, tokens[1]));
+            }
+        } else if (!strcmp(tokens[0], "new")) {
+            if (num_tokens < 2) {
+                panic("Invalid 'new':", input);
+            } else {
+                ret = new_Object(tokens[1]);   
+            }
+        } else if (!strcmp(tokens[0], "delete")) {
+            if (num_tokens < 2) {
+                panic("Invalid 'delete':", input);
+            } else {
+                delete_Property(eval(context, tokens[1]), tokens[2]);
+            }
+        } else if (!strcmp(tokens[0], "get")) {
+            if (num_tokens < 3) {
+                panic("Invalid 'get':", input);
+            } else {
+                ret = get_Property(eval(context, tokens[1]), tokens[2]);
+            }
+        } else if (!strcmp(tokens[0], "set")) {
+            if (num_tokens < 4) {
+                panic("Invalid 'set':", input);
+            } else {
+                ret = set_Property(eval(context, tokens[1]), tokens[2], eval(context, tokens[3]));
+            }
+        }
+        
+        for (i = 0; i < position; ++i) {
+            free(tokens[i]);
+        }
+        
+        return ret;
+    } else if (!strcmp(input, "_")) {
+        return context;        
+    } else if (input[0] == '\'' && input[len - 1] == '\'') {
+        return new_String(substring(input, 2, len - 2)); 
+    } else if (!strcmp(input, "true")) {
+        return new_Boolean(true);
+    } else if (!strcmp(input, "false")) {
+        return new_Boolean(false);
+    } else if (!strcmp(input, "undefined")) {
+        return new_Undefined();        
+    } else if (num = strtold(input, NULL)) {
+        return new_Number(num);
+    } else if (input[0] == '0') {
+        return new_Number(0.0);
     } else {
-        puts("Unknown wrapper!");
-        exit(1);
+        panic("Unknown wrapper:", input);
     }
 }

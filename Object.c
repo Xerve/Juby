@@ -6,8 +6,7 @@ typedef struct _Object {
     union {
         char* string;
         bool boolean;
-        int integer;
-        float number;
+        double number;
         Node* node;
     } value;
     bool gc;
@@ -33,16 +32,7 @@ Object* new_Boolean(bool value) {
     return object;
 }
 
-Object* new_Integer(int value) {
-    Object* object = malloc(sizeof(Object));
-    object->type = "Integer";
-    object->native = true;
-    object->value.integer = value;
-    object->gc = true;
-    return object;
-}
-
-Object* new_Number(float value) {
+Object* new_Number(long double value) {
     Object* object = malloc(sizeof(Object));
     object->type = "Number";
     object->native = true;
@@ -61,7 +51,8 @@ Object* new_Undefined(void) {
 
 Object* new_Object(char* type) {
     Object* object = malloc(sizeof(Object));
-    object->type = type;
+    object->type = malloc((strlen(type) + 1) * sizeof(char));
+    strcpy(object->type, type);
     object->native = false;
     object->value.node = NULL;
     object->gc = true;
@@ -97,19 +88,6 @@ Object* get_Property(Object* root, char* value) {
     return get_Node(root->value.node, value);
 }
 
-Object* delete_Object(Object* object) {
-    if (!object) {
-        return undefined;
-    }
-    
-    if (!object->native) {
-        delete_Node(object->value.node);
-    }
-    
-    free(object);
-    
-    return undefined;
-}
 
 bool Object_is(Object* object, char* type) {
     if (!strcmp(object->type, type)) {
@@ -119,19 +97,46 @@ bool Object_is(Object* object, char* type) {
     return false;
 }
 
+Object* delete_Object(Object* object) {
+    if (!object) {
+        return undefined;
+    }
+    
+    if (object != undefined) {
+        if (!object->native) {
+            free(object->type);
+            delete_Node(object->value.node);
+        } else if (Object_is(object, "String")) {
+            free(object->value.string);
+        }
+        
+        free(object);
+    }
+    
+    return undefined;
+}
+
+Object* delete_Property(Object* root, char* value) {
+    set_Property(root, value, undefined);
+    
+    return undefined;
+}
+
 int indentation = 0;
 
 Object* print_Object(Object* object) {
+    if (_panic) {
+        return undefined;
+    }
+    
     if (!object) {
         return undefined;    
     }
     
-    if (Object_is(object, "Integer")) {
-        printf("%d\n", object->value.integer);
-    } else if (Object_is(object, "Number")) {
-        printf("%f\n", object->value.number);
+    if (Object_is(object, "Number")) {
+        printf("%g\n", object->value.number);
     } else if (Object_is(object, "String")) {
-        printf("\"%s\"\n", object->value.string);
+        printf("'%s'\n", object->value.string);
     } else if (Object_is(object, "Boolean")) {
         if (object->value.boolean) {
             puts("true");

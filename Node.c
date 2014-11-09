@@ -21,7 +21,8 @@ struct _Object* define_Node(Node** root, char* value, struct _Object* object) {
     
     if (!(*root)) {
         (*root) = malloc(sizeof(Node));
-        (*root)->value = value;
+        (*root)->value = malloc((strlen(value) + 1) * sizeof(char));
+        strcpy((*root)->value, value);
         (*root)->object = object;
         (*root)->left = NULL;
         (*root)->right = NULL;
@@ -53,6 +54,7 @@ void free_Node(Node* root) {
     if (!root) {
         return;
     }
+    
     delete_Object(root->object);
     delete_Node(root->left);
     delete_Node(root->right);
@@ -62,6 +64,11 @@ void free_Node(Node* root) {
 
 void delete_Node(Node* root) {
     free_Node(root);
+    
+    if (root) {
+        free(root->value);
+    }
+    
     free(root);
     
     return;

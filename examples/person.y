@@ -1,0 +1,16 @@
+( juby 
+    (set _ ryan (new Person))
+    (set (get _ ryan) first_name 'ryan')
+    (set (get _ ryan) last_name 'delaney')
+    (set (get _ ryan) likes 'programming, pizza, etc')
+    (delete _ ryan)
+    (set _ ryan (new Person))
+    (set (get _ ryan) first_name 'ryan')
+    (set (get _ ryan) last_name 'delaney')
+    (set (get _ ryan) likes 'programming, pizza, etc')
+    (panic someone please help!)
+    (set _ a 5)
+    recover
+    (set _ b 8)
+    (print _)
+)
