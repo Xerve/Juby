@@ -17,7 +17,7 @@ struct _Object {
 };
 
 static bool Object_is(Object* object, char* type) {
-    if (!strcmp(object->type, type)) {
+    if (!strcmp(object->type, type) || !strcmp("Any", type)) {
         return true;
     }
     
@@ -125,6 +125,7 @@ Object* delete_Property(Object* root, char* value) {
     return undefined;
 }
 
+static int indentation = 0;
 Object* print_Object(Object* object) {
     if (_panic) {
         return undefined;
@@ -133,8 +134,6 @@ Object* print_Object(Object* object) {
     if (!object) {
         return undefined;    
     }
-    
-    static int indentation = 0;
     
     if (Object_is(object, "Number")) {
         printf("%g\n", object->value.number);
@@ -150,7 +149,8 @@ Object* print_Object(Object* object) {
         puts("undefined");        
     } else {
         printf("{ [%s]\n", object->type);
-        print_Node(object->value.node, indentation + 1);
+        print_Node(object->value.node, ++indentation);
+        --indentation;
         
         int i;
         for (i = 0; i < indentation; ++i) {
