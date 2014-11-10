@@ -1,6 +1,10 @@
-#define undefined &__undefined
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-typedef struct _Object {
+#include "Object.h"
+
+struct _Object {
     bool native;
     char* type;
     union {
@@ -10,7 +14,15 @@ typedef struct _Object {
         Node* node;
     } value;
     bool gc;
-} Object;
+};
+
+static bool Object_is(Object* object, char* type) {
+    if (!strcmp(object->type, type)) {
+        return true;
+    }
+    
+    return false;
+}
 
 Object __undefined = {true, "undefined"};
 
@@ -32,7 +44,7 @@ Object* new_Boolean(bool value) {
     return object;
 }
 
-Object* new_Number(long double value) {
+Object* new_Number(double value) {
     Object* object = malloc(sizeof(Object));
     object->type = "Number";
     object->native = true;
@@ -88,15 +100,6 @@ Object* get_Property(Object* root, char* value) {
     return get_Node(root->value.node, value);
 }
 
-
-bool Object_is(Object* object, char* type) {
-    if (!strcmp(object->type, type)) {
-        return true;
-    }
-    
-    return false;
-}
-
 Object* delete_Object(Object* object) {
     if (!object) {
         return undefined;
@@ -122,8 +125,6 @@ Object* delete_Property(Object* root, char* value) {
     return undefined;
 }
 
-int indentation = 0;
-
 Object* print_Object(Object* object) {
     if (_panic) {
         return undefined;
@@ -132,6 +133,8 @@ Object* print_Object(Object* object) {
     if (!object) {
         return undefined;    
     }
+    
+    static int indentation = 0;
     
     if (Object_is(object, "Number")) {
         printf("%g\n", object->value.number);
@@ -147,9 +150,7 @@ Object* print_Object(Object* object) {
         puts("undefined");        
     } else {
         printf("{ [%s]\n", object->type);
-        ++indentation;
-        print_Node(object->value.node);
-        --indentation;
+        print_Node(object->value.node, indentation + 1);
         
         int i;
         for (i = 0; i < indentation; ++i) {

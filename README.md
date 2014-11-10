@@ -9,7 +9,7 @@ compiled down into. Examples of it can be seen in the examples directory.
 
 ## Building
 
-Building is veryyyyyyyyyyyyyyyyyyyy easy. `gcc main.c -o juby` is all it takes.
+Building is veryyyyyyyyyyyyyyyyyyyy easy. `gcc *.c -o juby` is all it takes.
 You can then invoke a REPL session.
 
 Alternatively, you can run a file the the `-y` flag, so for example 

@@ -1,4 +1,8 @@
-#include "juby.c"
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "juby.h"
 
 int main(int argc, char** argv) {
     Object* globals = new_Object("Globals");
@@ -55,10 +59,7 @@ int main(int argc, char** argv) {
     
     delete_Object(globals);
     
-    if (_panic) {
-        puts("Failed with: ");
-        recover(true);
-    }
+    recover(true);
     
     return 0;
 }

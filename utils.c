@@ -1,6 +1,12 @@
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "utils.h"
+
 bool _panic = false;
-char* _panic_message = "Please";
-char* _panic_arg = "ignore";
+static char* _panic_message = "Please";
+static char* _panic_arg = "ignore";
 
 inline void panic(char* message, char* arg) {
     _panic = true;

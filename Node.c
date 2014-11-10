@@ -1,14 +1,17 @@
-struct _Object;
-struct _Object* delete_Object(struct _Object*);
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
 
-typedef struct _Node {
+#include "Node.h"
+
+struct _Node {
     struct _Node* left;
     struct _Node* right;
     char* value;
-    struct _Object* object;
-} Node;
+    Object* object;
+};
 
-struct _Object* define_Node(Node** root, char* value, struct _Object* object) {
+Object* define_Node(Node** root, char* value, struct _Object* object) {
     if (!value) {
         puts("Can't define a NULL property!");
         exit(1);
@@ -48,36 +51,7 @@ struct _Object* define_Node(Node** root, char* value, struct _Object* object) {
     return NULL;
 }
 
-void delete_Node(Node* root);
-
-void free_Node(Node* root) {
-    if (!root) {
-        return;
-    }
-    
-    delete_Object(root->object);
-    delete_Node(root->left);
-    delete_Node(root->right);
-    
-    return;
-}
-
-void delete_Node(Node* root) {
-    free_Node(root);
-    
-    if (root) {
-        free(root->value);
-    }
-    
-    free(root);
-    
-    return;
-}
-
-struct _Object* new_Undefined(void);
-
-
-struct _Object* get_Node(Node* root, char* value) {
+Object* get_Node(Node* root, char* value) {
     if (!root) {
         return define_Node(&root, value, new_Undefined());
     }
@@ -99,10 +73,27 @@ struct _Object* get_Node(Node* root, char* value) {
     return NULL;
 }
 
-int indentation;
-struct _Object* print_Object(struct _Object* object);
+void free_Node(Node* root) {
+    if (!root) {
+        return;
+    }
+    
+    delete_Object(root->object);
+    delete_Node(root->left);
+    delete_Node(root->right);
+}
 
-void print_Node(Node* node) {
+void delete_Node(Node* root) {
+    free_Node(root);
+    
+    if (root) {
+        free(root->value);
+    }
+    
+    free(root);
+}
+
+void print_Node(Node* node, int indentation) {
     if (!node) {
         return;
     }
@@ -117,8 +108,6 @@ void print_Node(Node* node) {
     }
     printf("%s: ", node->value);
     print_Object(node->object);
-    print_Node(node->left);
-    print_Node(node->right);
-    
-    return;
+    print_Node(node->left, indentation);
+    print_Node(node->right, indentation);
 }

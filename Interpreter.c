@@ -1,4 +1,8 @@
-#define isNullChar(X) (iscntrl(X) || isspace(X))
+#include <stdlib.h>
+#include <stdio.h>
+#include <string.h>
+
+#include "Interpreter.h"
 
 char* substring(char* string, int position, int length) {
     char* pointer = malloc(length+1);
