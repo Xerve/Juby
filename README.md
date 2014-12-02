@@ -19,14 +19,25 @@ Alternatively, you can run a file the the `-y` flag, so for example
 ## TODO
 
 [X] Object system
+
 [X] eval
+
 [X] Interpretter
+
 [X] Run files
+
 [ ] Copy objects
+
 [ ] Object literals
+
 [ ] Arrays and array literals
+
 [ ] Function objects
+
 [ ] Function literals
+
 [ ] Garbage collector
+
 [ ] User CLI input
+
 [ ] Read from files
