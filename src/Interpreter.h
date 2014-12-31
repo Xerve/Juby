@@ -3,8 +3,10 @@
 
 #include "utils.h"
 #include "Object.h"
+#include "Scope.h"
 
 char* substring(char* string, int position, int length);
-Object* eval(Object* content, char* input);
+Object* eval(Scope* scope, char* input);
+Object* eval_lines(Scope* scope, char* input);
 
 #endif
