@@ -21,7 +21,7 @@ struct _Object {
         char* string;
         bool boolean;
         double number;
-        Node* node;
+        ObjectNode* node;
         Function* function;
     } value;
 };
@@ -131,7 +131,7 @@ Object* set_Property(Object* root, char* value, Object* attr) {
 
     attr->parent = root;
     attr->name = value;
-    return define_Node(&(root->value.node), value, attr);
+    return ObjectNode__define(root->value.node, value, attr);
 }
 
 Object* get_Property(Object* root, char* value) {
@@ -143,7 +143,7 @@ Object* get_Property(Object* root, char* value) {
         err("Can't set property of native object!", root, undefined);
     }
 
-    Object* ret = get_Node(&(root->value.node), value);
+    Object* ret = ObjectNode__get(&(root->value.node), value);
     if (ret == undefined) {
         return set_Property(root, value, new_Undefined());
     } else {
@@ -166,7 +166,7 @@ Object* delete_Object(Object* object) {
     if (object != undefined) {
         if (!object->native) {
             free(object->type);
-            delete_Node(object->value.node);
+            ObjectNode__delete(object->value.node);
         } else if (Object_is(object, "String")) {
             free(object->value.string);
         } else if (Object_is(object, "Function")) {
@@ -209,7 +209,7 @@ Object* print_Object(Object* object) {
         puts("undefined");
     } else {
         printf("{ [%s]\n", object->type);
-        print_Node(object->value.node, ++indentation);
+        ObjectNode__print(object->value.node, ++indentation);
         --indentation;
 
         int i;

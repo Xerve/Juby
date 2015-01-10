@@ -1,6 +1,6 @@
 #include "utils.h"
 #include "Object.h"
-#include "Node.h"
+#include "ObjectNode.h"
 #include "Scope.h"
 #include "Interpreter.h"
 

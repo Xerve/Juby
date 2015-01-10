@@ -5,11 +5,11 @@ typedef struct _Scope Scope;
 
 #include "Object.h"
 
-Scope* create_Scope(Object* context);
-void add_Garbage(Scope* scope, Object* object);
-Object* get_Variable(Scope* scope, char* name);
-void collect_Garbage(Scope* scope);
-Object* delete_Scope(Scope* scope);
-void destroy_Scope(Scope* scope);
+Scope* Scope__create(Object* context);
+Object* Scope__addGarbage(Scope* scope, Object* object);
+Object* Scope__getVariable(Scope* scope, char* name);
+void Scope__collectGarbage(Scope* scope, bool all);
+Object* Scope__delete(Scope* scope);
+void Scope__destroy(Scope* scope);
 
 #endif

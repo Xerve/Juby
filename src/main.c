@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
             print_Object(eval(scope, input));
             recover(true);
             memset(input, '\0', strlen(input));
+            Scope__collectGarbage(scope, false);
             printf("\njuby> ");
         }
     } else {
@@ -72,7 +73,7 @@ int main(int argc, char** argv) {
         }
     }
 
-    destroy_Scope(scope);
+    Scope__destroy(scope);
 
     recover(true);
 

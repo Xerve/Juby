@@ -11,7 +11,7 @@ struct _Scope {
     int capacity;
 };
 
-Scope* create_Scope(Object* context) {
+Scope* Scope__create(Object* context) {
     Scope* scope = malloc(sizeof(Scope));
     scope->context = context;
     scope->gc = malloc(sizeof(Object*) * 10);
@@ -21,17 +21,24 @@ Scope* create_Scope(Object* context) {
     return scope;
 }
 
-void add_Garbage(Scope* scope, Object* value) {
-    // if (scope->garbage == scope->capacity) {
-    //     scope->capacity += 5;
-    //     scope->gc = realloc(scope->gc, sizeof(Object*) * scope->garbage);
-    // }
-    //
-    // scope->gc[scope->garbage] = value;
-    scope->garbage++;
+Object* Scope__addGarbage(Scope* scope, Object* value) {
+    if (scope->garbage == scope->capacity) {
+        scope->capacity += 5;
+        scope->gc = realloc(scope->gc, sizeof(Object*) * scope->garbage);
+    }
+
+    int i = scope->garbage;
+    while (scope->gc[i] != NULL) {
+        ++i;
+    }
+
+    scope->gc[i] = value;
+    scope->garbage = i + 1;
+
+    return value;
 }
 
-Object* get_Variable(Scope* scope, char* name) {
+Object* Scope__getVariable(Scope* scope, char* name) {
     if (!strcmp(name, "self")) {
         return scope->context;
     }
@@ -47,16 +54,36 @@ Object* get_Variable(Scope* scope, char* name) {
     return curr;
 }
 
-void collect_Garbage(Scope* scope) {
+void print_GC(Scope* scope) {
+    int i;
+    printf("[");
+    for (i = 0; i < scope->capacity; ++i) {
+        if (scope->gc[i] == NULL) {
+            printf("NULL ");
+        } else {
+            printf("<$%p> ", scope->gc[i]);
+        }
+    }
+    printf("]");
+}
+
+void Scope__collectGarbage(Scope* scope, bool all) {
+    print_GC(scope);
     int i;
     for (i = 0; i < scope->garbage; ++i) {
-        delete_Property(Object_parent(scope->gc[i]), Object_name(scope->gc[i]));
+        if (scope->gc[i] != NULL) {
+            if (all || Object_parent(scope->gc[i]) == NULL || Object_parent(scope->gc[i]) == undefined) {
+                delete_Property(Object_parent(scope->gc[i]), Object_name(scope->gc[i]));
+                scope->gc[i] = NULL;
+            }
+        }
     }
 
     scope->garbage = 0;
 }
 
-Object* delete_Scope(Scope* scope) {
+Object* Scope__delete(Scope* scope) {
+    Scope__collectGarbage(scope, true);
     free(scope->gc);
     Object* context = scope->context;
     free(scope);
@@ -64,7 +91,7 @@ Object* delete_Scope(Scope* scope) {
     return context;
 }
 
-void destroy_Scope(Scope* scope) {
-    Object* context = delete_Scope(scope);
+void Scope__destroy(Scope* scope) {
+    Object* context = Scope__delete(scope);
     delete_Object(context);
 }

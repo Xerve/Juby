@@ -107,29 +107,13 @@ Object* eval(Scope* scope, char* input) {
 
         if (num_tokens == 0) {
             ret = undefined;
-        } else if (!strcmp(tokens[0], "juby")) {
-            for (i = 1; i < num_tokens; ++i) {
-                ret = eval(scope, tokens[i]);
-            }
         } else if (!strcmp(tokens[0], "panic")) {
             panic("User panic!", input);
-        } else if (!strcmp(tokens[0], "print")) {
-            if (num_tokens < 2) {
-                panic("Invalid 'print':", input);
-            } else {
-                ret = print_Object(eval(scope, tokens[1]));
-            }
         } else if (!strcmp(tokens[0], "new")) {
             if (num_tokens < 2) {
                 panic("Invalid 'new':", input);
             } else {
                 ret = new_Object(tokens[1]);
-            }
-        } else if (!strcmp(tokens[0], "delete")) {
-            if (num_tokens < 2) {
-                panic("Invalid 'delete':", input);
-            } else {
-                delete_Property(eval(scope, tokens[1]), tokens[2]);
             }
         } else if (!strcmp(tokens[0], "get")) {
             if (num_tokens < 3) {
@@ -150,7 +134,7 @@ Object* eval(Scope* scope, char* input) {
                 args[i - 1] = eval(scope, tokens[i]);
             }
 
-            ret = apply_Object(scope, eval(scope, tokens[0]), args, num_tokens - 1);
+            ret = GC(apply_Object(scope, eval(scope, tokens[0]), args, num_tokens - 1));
         }
 
         for (i = 0; i < position; ++i) {
@@ -159,19 +143,19 @@ Object* eval(Scope* scope, char* input) {
 
         return ret;
     } else if (input[0] == '\'' && input[len - 1] == '\'') {
-        return new_String(substring(input, 2, len - 2));
+        return GC(new_String(substring(input, 2, len - 2)));
     } else if (!strcmp(input, "true")) {
-        return new_Boolean(true);
+        return GC(new_Boolean(true));
     } else if (!strcmp(input, "false")) {
-        return new_Boolean(false);
+        return GC(new_Boolean(false));
     } else if (!strcmp(input, "undefined")) {
-        return new_Undefined();
+        return GC(new_Undefined());
     } else if (num = strtold(input, NULL)) {
-        return new_Number(num);
+        return GC(new_Number(num));
     } else if (input[0] == '0') {
-        return new_Number(0.0);
+        return GC(new_Number(0.0));
     } else {
-        return get_Variable(scope, input);
+        return Scope__getVariable(scope, input);
     }
 }
 

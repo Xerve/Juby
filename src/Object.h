@@ -7,7 +7,7 @@ typedef struct _Object Object;
 typedef struct _Function Function;
 
 #include "utils.h"
-#include "Node.h"
+#include "ObjectNode.h"
 #include "Interpreter.h"
 #include "Scope.h"
 
