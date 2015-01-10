@@ -1,22 +1,30 @@
 #ifndef Object_h
 #define Object_h
 
+#include <stdbool.h>
+
 #define undefined &__undefined
+#define t_Any &__t_Any
+#define t_String &__t_String
+#define t_Boolean &__t_Boolean
+#define t_Number &__t_Number
+#define t_Function &__t_Function
 
 typedef struct _Object Object;
 typedef struct _Function Function;
 
 #include "ObjectNode.h"
-#include "Scope.h"
 
-typedef Object* (*nFunc)(Scope*, int, Object**);
+typedef Object* (*nFunc)(int, Object**);
 
 extern Object __undefined;
-extern Object* t_Any;
-extern Object* t_String;
-extern Object* t_Boolean;
-extern Object* t_Number;
-extern Object* t_Function;
+extern Object __t_Any;
+extern Object __t_String;
+extern Object __t_Boolean;
+extern Object __t_Number;
+extern Object __t_Function;
+
+void TYPE__INIT(void);
 
 inline bool Object__is(Object* object, Object* type);
 
@@ -38,9 +46,9 @@ Object* Object__Object(Object* type);
 void Object__delete(Object* object);
 
 void Object__set(Object* object, char* value, Object* attr);
-void Object__unset(Onject* object, char* value);
+void Object__unset(Object* object, char* value);
 Object* Object__get(Object* object, char* value);
-Object* Object__apply(Scope* scope, Object* object, int argc, Object* argv[]);
+Object* Object__apply(Object* object, int argc, Object* argv[]);
 void Object__print(Object* object);
 
 #endif

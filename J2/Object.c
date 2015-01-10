@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
 
 #include "Object.h"
 
@@ -26,47 +27,25 @@ struct _Object {
     } value;
 };
 
-Object __undefined = {true, undefined, "undefined", NULL };
+Object __undefined = {true, undefined, "undefined", NULL, NULL};
+Object __t_Any = {false, t_Any, NULL, NULL, NULL};
+Object __t_String = {false, t_Any, NULL, NULL, NULL};
+Object __t_Boolean = {false, t_Any, NULL, NULL, NULL};
+Object __t_Number = {false, t_Any, NULL, NULL, NULL};
+Object __t_Function = {false, t_Any, NULL, NULL, NULL};
 
-Object* t_Any = malloc(sizeof(Object));
-    t_Any->native = false;
-    t_Any->type = t_Any;
-    t_Any->parent = NULL;
-    t_Any->name = NULL;
-    t_Any->value.node = ObjectNode__create();
+void TYPE__INIT(void) {
+    __t_Any.value.node = ObjectNode__create();
+    __t_String.value.node = ObjectNode__create();
+    __t_Boolean.value.node = ObjectNode__create();
+    __t_Number.value.node = ObjectNode__create();
+    __t_Function.value.node = ObjectNode__create();
+}
 
-Object* t_String = malloc(sizeof(Object));
-    t_String->native = false;
-    t_String->type = t_Any;
-    t_String->name = NULL;
-    t_String->parent = NULL;
-    t_String->value.node = ObjectNode__create();
-    
-Object* t_Boolean = malloc(sizeof(Object));
-    t_Boolean->native = false;
-    t_Boolean->type = t_Any;
-    t_Boolean->name = NULL;
-    t_Boolean->parent = NULL;
-    t_Boolean->value.node = ObjectNode__create();
-    
-Object* t_Number = malloc(sizeof(Object));
-    t_Number->native = false;
-    t_Number->type = t_Any;
-    t_Number->name = NULL;
-    t_Number->parent = NULL;
-    t_Number->value.node = ObjectNode__create();
-    
-Object* t_Function = malloc(sizeof(Object));
-    t_Function->native = false;
-    t_Function->type = t_Any;
-    t_Function->name = NULL;
-    t_Function->parent = NULL;
-    t_Function->value.node = ObjectNode__create();
-    
 inline bool Object__is(Object* object, Object* type) { return object->type == type; }
 
 inline char* Object__getName(Object* object) { return object->name; }
-inline void Object__setName(Object* object, char* name) { 
+inline void Object__setName(Object* object, char* name) {
     if (object->name) { free(object->name); }
     object->name = malloc((strlen(name) + 1) * sizeof(char));
     strcpy(object->name, name);
@@ -75,9 +54,9 @@ inline void Object__setName(Object* object, char* name) {
 inline Object* Object__getParent(Object* object) { return object->parent; }
 inline void Object__setParent(Object* object, Object* parent) { object->parent = parent; }
 
-inline char* Object__getString(Object* object) { 
+inline char* Object__getString(Object* object) {
     if (!Object__is(object, t_String)) { puts("Cannot get String of non-String type!"); exit(1); }
-    return object->value.string;    
+    return object->value.string;
 }
 
 inline bool Object__getBoolean(Object* object) {
@@ -159,11 +138,12 @@ Object* Object__Object(Object* type) {
     object->type = type;
     object->name = NULL;
     object->parent = NULL;
+    object->value.node = ObjectNode__create();
     return object;
 }
 
 void Object__delete(Object* object) {
-    if (!object) { return undefined; }
+    if (!object) { return; }
 
     if (object != undefined) {
         if (!object->native) {
@@ -171,7 +151,7 @@ void Object__delete(Object* object) {
             ObjectNode__delete(object->value.node);
         } else if (Object__is(object, t_String)) {
             free(object->value.string);
-        } else if (Object_is(object, t_Function)) {
+        } else if (Object__is(object, t_Function)) {
             if (!object->value.function->native) {
                 free(object->value.function->value.uf);
             }
@@ -180,5 +160,72 @@ void Object__delete(Object* object) {
         }
 
         free(object);
+    }
+}
+
+void Object__set(Object* object, char* value, Object* attr) {
+    if (!object) { puts("Cannot set property of empty object!"); exit(1); }
+    if (!value) { puts("Cannot set empty key on object!"); exit(1); }
+    if (!attr) { puts("Cannot set NULL object on object!"); exit(1); }
+    if (object->native) { puts("Cannot set on native object!"); exit(1); }
+    attr->name = malloc((strlen(value) + 1) * sizeof(char));
+    strcpy(attr->name, value);
+    ObjectNode__set(object->value.node, value, attr);
+}
+
+void Object__unset(Object* object, char* value) {
+    if (!object) { puts("Cannot unset property of empty object!"); exit(1); }
+    if (!value) { puts("Cannot unset empty key on object!"); exit(1); }
+    if (object->native) { puts("Cannot unset on native object!"); exit(1); }
+    ObjectNode__set(object->value.node, value, undefined);
+}
+
+Object* Object__get(Object* object, char* value) {
+    if (!object) { puts("Cannot get property of empty object!"); exit(1); }
+    if (!value) { puts("Cannot get empty key on object!"); exit(1); }
+    if (object->native) { puts("Cannot get on native object!"); exit(1); }
+    return ObjectNode__get(object->value.node, value);
+}
+
+Object* Object__apply(Object* object, int argc, Object* argv[]) {
+    if (Object__is(object, t_Function)) {
+        if (object->value.function->native) {
+            return (object->value.function->value.nf)(argc, argv);
+        } else {
+            return undefined; // User defined functions
+        }
+    } else {
+        return object;
+    }
+}
+
+static int indentation = 0;
+void Object__print(Object* object) {
+    if (!object) { return; }
+
+    if (Object__is(object, t_Number)) {
+        printf("%g\n", object->value.number);
+    } else if (Object__is(object, t_String)) {
+        printf("'%s'\n", object->value.string);
+    } else if (Object__is(object, t_Boolean)) {
+        if (object->value.boolean) {
+            puts("true");
+        } else {
+            puts("false");
+        }
+    } else if (Object__is(object, t_Function)) {
+        puts("<Function>");
+    } else if (Object__is(object, undefined)) {
+        puts("undefined");
+    } else {
+        printf("{ [%s]\n", object->type->name);
+        ObjectNode__print(object->value.node, ++indentation);
+        --indentation;
+
+        int i;
+        for (i = 0; i < indentation; ++i) {
+            printf("  ");
+        }
+        puts("}");
     }
 }
