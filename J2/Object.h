@@ -5,10 +5,12 @@
 
 #define undefined &__undefined
 #define t_Any &__t_Any
+#define t_Undefined &__t_Undefined
 #define t_String &__t_String
 #define t_Boolean &__t_Boolean
 #define t_Number &__t_Number
 #define t_Function &__t_Function
+#define t_Prelude &__t_Prelude
 
 typedef struct _Object Object;
 typedef struct _Function Function;
@@ -19,10 +21,12 @@ typedef Object* (*nFunc)(int, Object**);
 
 extern Object __undefined;
 extern Object __t_Any;
+extern Object __t_Undefined;
 extern Object __t_String;
 extern Object __t_Boolean;
 extern Object __t_Number;
 extern Object __t_Function;
+extern Object __t_Prelude;
 
 void TYPE__INIT(void);
 
@@ -32,6 +36,8 @@ inline char* Object__getName(Object* object);
 inline void Object__setName(Object* object, char* name);
 inline Object* Object__getParent(Object* object);
 inline void Object__setParent(Object* object, Object* parent);
+inline Object* Object__getType(Object* object);
+inline void Object__setType(Object* object, Object* type);
 inline char* Object__getString(Object* object);
 inline bool Object__getBoolean(Object* object);
 inline double Object__getNumber(Object* object);

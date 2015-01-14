@@ -39,7 +39,7 @@ Scope* Scope__create(Object* context) {
 //}
 
 Object* Scope__getVariable(Scope* scope, char* name) {
-    if (!strcmp(name, "self")) {
+    if (!strcmp(name, "_")) {
         return scope->context;
     }
     const char split[2] = ".";
@@ -92,6 +92,6 @@ Object* Scope__delete(Scope* scope) {
 }
 
 void Scope__destroy(Scope* scope) {
-    Object* context = Scope__delete(scope);
-    Object__delete(context);
+    // Object* context = Scope__delete(scope);
+    // Object__delete(context);
 }

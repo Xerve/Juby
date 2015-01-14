@@ -27,19 +27,24 @@ struct _Object {
     } value;
 };
 
-Object __undefined = {true, undefined, "undefined", NULL, NULL};
 Object __t_Any = {false, t_Any, NULL, NULL, NULL};
+Object __t_Undefined = {false, t_Any, NULL, NULL, NULL};
 Object __t_String = {false, t_Any, NULL, NULL, NULL};
 Object __t_Boolean = {false, t_Any, NULL, NULL, NULL};
 Object __t_Number = {false, t_Any, NULL, NULL, NULL};
 Object __t_Function = {false, t_Any, NULL, NULL, NULL};
+Object __t_Prelude = {false, t_Any, NULL, NULL, NULL};
+
+Object __undefined = {true, t_Undefined, "undefined", NULL, NULL};
 
 void TYPE__INIT(void) {
     __t_Any.value.node = ObjectNode__create();
+    __t_Undefined.value.node = ObjectNode__create();
     __t_String.value.node = ObjectNode__create();
     __t_Boolean.value.node = ObjectNode__create();
     __t_Number.value.node = ObjectNode__create();
     __t_Function.value.node = ObjectNode__create();
+    __t_Prelude.value.node = ObjectNode__create();
 }
 
 inline bool Object__is(Object* object, Object* type) { return object->type == type; }
@@ -53,6 +58,9 @@ inline void Object__setName(Object* object, char* name) {
 
 inline Object* Object__getParent(Object* object) { return object->parent; }
 inline void Object__setParent(Object* object, Object* parent) { object->parent = parent; }
+
+inline Object* Object__getType(Object* object) { return object->type; }
+inline void Object__setType(Object* object, Object* type) { object->type = type; }
 
 inline char* Object__getString(Object* object) {
     if (!Object__is(object, t_String)) { puts("Cannot get String of non-String type!"); exit(1); }
@@ -126,7 +134,7 @@ Object* Object__nFunction(nFunc value) {
 Object* Object__Undefined(void) {
     Object* object = malloc(sizeof(Object));
     object->native = true;
-    object->type = undefined;
+    object->type = t_Undefined;
     object->name = NULL;
     object->parent = NULL;
     return object;
@@ -171,6 +179,7 @@ void Object__set(Object* object, char* value, Object* attr) {
     attr->name = malloc((strlen(value) + 1) * sizeof(char));
     strcpy(attr->name, value);
     ObjectNode__set(object->value.node, value, attr);
+    attr->parent = object;
 }
 
 void Object__unset(Object* object, char* value) {
@@ -180,11 +189,49 @@ void Object__unset(Object* object, char* value) {
     ObjectNode__set(object->value.node, value, undefined);
 }
 
+Object* Object__getFromType(Object* object, char* value) {
+    if (object == t_Any || object == undefined) { return NULL; }
+    Object* ret = ObjectNode__get(object->type->value.node, value);
+    if (!ret) { return Object__getFromType(object->type, value); }
+    else { return ret; }
+}
+
 Object* Object__get(Object* object, char* value) {
     if (!object) { puts("Cannot get property of empty object!"); exit(1); }
     if (!value) { puts("Cannot get empty key on object!"); exit(1); }
-    if (object->native) { puts("Cannot get on native object!"); exit(1); }
-    return ObjectNode__get(object->value.node, value);
+
+    if (!object->native) {
+        Object* ret = ObjectNode__get(object->value.node, value);
+
+        if (!ret) {
+            if (object->type) {
+                ret = Object__getFromType(object, value);
+                if (!ret) {
+                    Object__set(object, value, Object__Undefined());
+                    return Object__get(object, value);
+                } else {
+                    return ret;
+                }
+            } else {
+                Object__set(object, value, Object__Undefined());
+                return Object__get(object, value);
+            }
+        } else {
+            return ret;
+        }
+    } else {
+        if (object->type) {
+            Object* ret = Object__getFromType(object, value);
+            if (!ret) {
+                puts("Cannot get from native value!");
+                exit(1);
+            } else {
+                return ret;
+            }
+        } else {
+            return undefined;
+        }
+    }
 }
 
 Object* Object__apply(Object* object, int argc, Object* argv[]) {
@@ -215,7 +262,7 @@ void Object__print(Object* object) {
         }
     } else if (Object__is(object, t_Function)) {
         puts("<Function>");
-    } else if (Object__is(object, undefined)) {
+    } else if (Object__is(object, t_Undefined)) {
         puts("undefined");
     } else {
         printf("{ [%s]\n", object->type->name);

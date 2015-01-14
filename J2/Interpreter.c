@@ -106,7 +106,7 @@ Object* eval(Scope* scope, char* input) {
         if (num_tokens == 0) {
             ret = undefined;
         } else if (!strcmp(tokens[0], "new")) {
-                ret = Object__Object(t_Any);
+            ret = Object__Object(t_Any);
         } else if (!strcmp(tokens[0], "get")) {
             if (num_tokens < 3) {
                 puts("Invalid 'get':");

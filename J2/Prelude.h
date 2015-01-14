@@ -3,6 +3,14 @@
 #include "Scope.h"
 #include "Interpreter.h"
 
-#define PreludeFunc(name) Object__set(p, #name, Object__nFunction(name))
+#include "Prelude__Any.h"
+#include "Prelude__Number.h"
 
 Scope* Prelude(void);
+
+void Prelude__init(void);
+
+Object* Prelude__juby(int argc, Object* argv[]);
+Object* Prelude__print(int argc, Object* argv[]);
+Object* Prelude__let(int argc, Object* argv[]);
+Object* Prelude__quit(int argc, Object* argv[]);

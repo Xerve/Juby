@@ -57,7 +57,6 @@ void ObjectNode__set(ObjectNode* root, char* value, Object* object) {
     if (!root->value) {
         root->value = malloc((strlen(value) + 1) * sizeof(char));
         strcpy(root->value, value);
-        //root->value = value;
         root->object = object;
     } else {
         int lt = strcmp(value, root->value);
@@ -93,8 +92,8 @@ void ObjectNode__set(ObjectNode* root, char* value, Object* object) {
 }
 
 Object* ObjectNode__get(ObjectNode* root, char* value) {
-    if (!root) { return undefined; }
-    if (!root->value) { return undefined; }
+    if (!root) { return NULL; }
+    if (!root->value) { return NULL; }
 
     int lt = strcmp(value, root->value);
     if (lt < 0) { return ObjectNode__get(root->left, value); }
@@ -104,7 +103,7 @@ Object* ObjectNode__get(ObjectNode* root, char* value) {
     return undefined;
 }
 
-static int __indentation;
+static int __indentation = 0;
 static void _ObjectNode__print(ObjectNode* node) {
     int i;
     for (i = 0; i < __indentation; ++i) { printf("  "); }
@@ -116,6 +115,8 @@ void ObjectNode__print(ObjectNode* root, int indentation) {
     if (!root) { return; }
     if (!root->object) { return; }
 
+    int old_indentation = __indentation;
     __indentation = indentation;
     ObjectNode__do(root, _ObjectNode__print);
+    __indentation = old_indentation;
 }
