@@ -1,41 +1,60 @@
 #ifndef Object_h
 #define Object_h
 
+#include <stdbool.h>
+
 #define undefined &__undefined
+#define t_Any &__t_Any
+#define t_Undefined &__t_Undefined
+#define t_String &__t_String
+#define t_Boolean &__t_Boolean
+#define t_Number &__t_Number
+#define t_Function &__t_Function
+#define t_Prelude &__t_Prelude
 
 typedef struct _Object Object;
 typedef struct _Function Function;
 
-#include "utils.h"
 #include "ObjectNode.h"
-#include "Interpreter.h"
-#include "Scope.h"
 
-typedef Object* (*nativeFunction)(Scope*, Object**, int);
+typedef Object* (*nFunc)(int, Object**);
 
 extern Object __undefined;
+extern Object __t_Any;
+extern Object __t_Undefined;
+extern Object __t_String;
+extern Object __t_Boolean;
+extern Object __t_Number;
+extern Object __t_Function;
+extern Object __t_Prelude;
 
-inline static bool Object_is(Object* object, char* type);
+void TYPE__INIT(void);
 
-inline char* Object_name(Object* object);
-inline Object* Object_parent(Object* object);
-inline void set_Object_name(Object* object, char* name);
-inline void set_Object_parent(Object* object, Object* parent);
+inline bool Object__is(Object* object, Object* type);
 
-Object* new_String(char* value);
-Object* new_Boolean(bool value);
-Object* new_Number(double value);
-Object* new_uFunction(char* value);
-Object* new_nFunction(nativeFunction value);
-Object* new_Undefined(void);
-Object* new_Object(char* type);
+inline char* Object__getName(Object* object);
+inline void Object__setName(Object* object, char* name);
+inline Object* Object__getParent(Object* object);
+inline void Object__setParent(Object* object, Object* parent);
+inline Object* Object__getType(Object* object);
+inline void Object__setType(Object* object, Object* type);
+inline char* Object__getString(Object* object);
+inline bool Object__getBoolean(Object* object);
+inline double Object__getNumber(Object* object);
 
-Object* set_Property(Object* root, char* value, Object* attr);
-Object* get_Property(Object* root, char* value);
-Object* delete_Property(Object* root, char* value);
+Object* Object__String(char* value);
+Object* Object__Boolean(bool value);
+Object* Object__Number(double value);
+Object* Object__uFunction(char* value);
+Object* Object__nFunction(nFunc value);
+Object* Object__Undefined(void);
+Object* Object__Object(Object* type);
+void Object__delete(Object* object);
 
-Object* delete_Object(Object* object);
-Object* print_Object(Object* object);
-Object* apply_Object(Scope* context, Object* object, Object* args[], int argc);
+void Object__set(Object* object, char* value, Object* attr);
+void Object__unset(Object* object, char* value);
+Object* Object__get(Object* object, char* value);
+Object* Object__apply(Object* object, int argc, Object* argv[]);
+void Object__print(Object* object);
 
 #endif

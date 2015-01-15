@@ -1,24 +1,20 @@
-// V 0.0.1
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
-#include "juby.h"
+#include "Prelude.h"
 
 int main(int argc, char** argv) {
     Scope* scope = Prelude();
     if (argc == 1) {
         char input[1024];
-        printf("juby> ");
+        printf(">>> ");
         while(fgets(input, 1024, stdin)) {
             input[strlen(input) - 1] = '\0';
             if (!strcmp(input, ":quit")) { break; }
-            print_Object(eval(scope, input));
-            recover(true);
+            Object__print(eval(scope, input));
             memset(input, '\0', strlen(input));
-            Scope__collectGarbage(scope, false);
-            printf("\njuby> ");
+            printf("\n>>> ");
         }
     } else {
         int i;
@@ -60,13 +56,13 @@ int main(int argc, char** argv) {
             } else if (!strcmp(argv[i], "-e")) {
                 if (i != argc - 1) {
                     if (argv[i + 1][0] != '-') {
-                        print_Object(eval_lines(scope, argv[i + 1]));
+                        Object__print(eval_lines(scope, argv[i + 1]));
                     }
                 }
             } else if (!strcmp(argv[i], "-l")) {
                 if (i != argc - 1) {
                     if (argv[i + 1][0] != '-') {
-                        print_Object(eval(scope, argv[i + 1]));
+                        Object__print(eval(scope, argv[i + 1]));
                     }
                 }
             }
@@ -74,8 +70,6 @@ int main(int argc, char** argv) {
     }
 
     Scope__destroy(scope);
-
-    recover(true);
 
     return 0;
 }

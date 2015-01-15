@@ -1,15 +1,20 @@
 #ifndef ObjectNode_h
 #define ObjectNode_h
 
-#include "Object.h"
-
 typedef struct _ObjectNode ObjectNode;
 
-Object* ObjectNode__define(ObjectNode* root, char* value, Object* object);
-Object* ObjectNode__get(ObjectNode** root, char* value);
+#include "Object.h"
 
-void ObjectNode__free(ObjectNode* root);
-void ObjectNode__delete(ObjectNode* root);
-void ObjectNode__print(ObjectNode* node, int indentation);
+inline char* ObjectNode__getValue(ObjectNode* node);
+inline Object* ObjectNode__getObject(ObjectNode* node);
 
+ObjectNode* ObjectNode__create(void);
+void ObjectNode__free(ObjectNode* node);
+void ObjectNode__delete(ObjectNode*node);
+
+void ObjectNode__do(ObjectNode* node, void (*func)(ObjectNode*));
+
+void ObjectNode__set(ObjectNode* root, char* value, Object* object);
+Object* ObjectNode__get(ObjectNode* root, char* value);
+void ObjectNode__print(ObjectNode* root, int indentation);
 #endif

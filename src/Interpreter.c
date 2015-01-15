@@ -1,6 +1,8 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdbool.h>
+#include <ctype.h>
 
 #include "Interpreter.h"
 
@@ -23,13 +25,6 @@ char* substring(char* string, int position, int length) {
 }
 
 Object* eval(Scope* scope, char* input) {
-    if (!strcmp(input, "recover") || !strcmp(input, "(recover)")) {
-          recover(true);
-          return undefined;
-    } else if (_panic) {
-        return undefined;
-    }
-
     int len = strlen(input);
     double num;
 
@@ -62,11 +57,14 @@ Object* eval(Scope* scope, char* input) {
         }
 
         if (paren_level > 0) {
-            panic("Too many \"(\"!", NULL);
+            puts("Too many \"(\"!");
+            return undefined;
         } else if (paren_level < 0) {
-            panic("Too many \")\"!", NULL);
+            puts("Too many \")\"!");
+            return undefined;
         } else if (in_str) {
-            panic("Too many \"'\"!", NULL);
+            puts("Too many \"'\"!");
+            return undefined;
         }
 
         in_str = false;
@@ -107,25 +105,22 @@ Object* eval(Scope* scope, char* input) {
 
         if (num_tokens == 0) {
             ret = undefined;
-        } else if (!strcmp(tokens[0], "panic")) {
-            panic("User panic!", input);
         } else if (!strcmp(tokens[0], "new")) {
-            if (num_tokens < 2) {
-                panic("Invalid 'new':", input);
-            } else {
-                ret = new_Object(tokens[1]);
-            }
+            ret = Object__Object(t_Any);
         } else if (!strcmp(tokens[0], "get")) {
             if (num_tokens < 3) {
-                panic("Invalid 'get':", input);
+                puts("Invalid 'get':");
+                return undefined;
             } else {
-                ret = get_Property(eval(scope, tokens[1]), tokens[2]);
+                ret = Object__get(eval(scope, tokens[1]), tokens[2]);
             }
         } else if (!strcmp(tokens[0], "set")) {
             if (num_tokens < 4) {
-                panic("Invalid 'set':", input);
+                puts("Invalid 'set':");
+                return undefined;
             } else {
-                ret = set_Property(eval(scope, tokens[1]), tokens[2], eval(scope, tokens[3]));
+                Object__set(eval(scope, tokens[1]), tokens[2], eval(scope, tokens[3]));
+                ret = eval(scope, tokens[1]);
             }
         } else {
             Object* args[num_tokens - 1];
@@ -134,7 +129,7 @@ Object* eval(Scope* scope, char* input) {
                 args[i - 1] = eval(scope, tokens[i]);
             }
 
-            ret = GC(apply_Object(scope, eval(scope, tokens[0]), args, num_tokens - 1));
+            ret = Object__apply(eval(scope, tokens[0]), num_tokens - 1, args);
         }
 
         for (i = 0; i < position; ++i) {
@@ -143,17 +138,17 @@ Object* eval(Scope* scope, char* input) {
 
         return ret;
     } else if (input[0] == '\'' && input[len - 1] == '\'') {
-        return GC(new_String(substring(input, 2, len - 2)));
+        return Object__String(substring(input, 2, len - 2));
     } else if (!strcmp(input, "true")) {
-        return GC(new_Boolean(true));
+        return Object__Boolean(true);
     } else if (!strcmp(input, "false")) {
-        return GC(new_Boolean(false));
+        return Object__Boolean(false);
     } else if (!strcmp(input, "undefined")) {
-        return GC(new_Undefined());
-    } else if (num = strtold(input, NULL)) {
-        return GC(new_Number(num));
+        return Object__Undefined();
+    } else if ((num = strtold(input, NULL))) {
+        return Object__Number(num);
     } else if (input[0] == '0') {
-        return GC(new_Number(0.0));
+        return Object__Number(0.0);
     } else {
         return Scope__getVariable(scope, input);
     }
@@ -161,7 +156,6 @@ Object* eval(Scope* scope, char* input) {
 
 Object* eval_lines(Scope* scope, char* input) {
     int len = strlen(input);
-    double num;
     int i;
     int position = 0;
     int start = 0;
@@ -190,13 +184,15 @@ Object* eval_lines(Scope* scope, char* input) {
     }
 
     if (paren_level > 0) {
-        panic("Too many \"(\"!", NULL);
+        puts("Too many \"(\"!");
+        return undefined;
     } else if (paren_level < 0) {
-        panic("Too many \")\"!", NULL);
+        puts("Too many \")\"!");
+        return undefined;
     } else if (in_str) {
-        panic("Too many \"'\"!", NULL);
+        puts("Too many \"'\"!");
+        return undefined;
     }
-
     in_str = false;
     paren_level = 0;
     char* tokens[num_tokens];
