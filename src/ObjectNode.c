@@ -41,6 +41,21 @@ void ObjectNode__delete(ObjectNode* node) {
     free(node);
 }
 
+ObjectNode* ObjectNode__copy(ObjectNode* node) {
+    if (!node) { return NULL; }
+    if (!node->value) { return ObjectNode__create(); }
+
+    ObjectNode* n = malloc(sizeof(ObjectNode));
+    n->object = Object__copy(node->object);
+    n->value = malloc((strlen(node->value) + 1) * sizeof(char));
+    strcpy(n->value, node->value);
+    n->left = ObjectNode__copy(node->left);
+    if (n->left) { n->left->parent = n; }
+    n->right = ObjectNode__copy(node->right);
+    if (n->right) { n->right->parent = n; }
+
+    return n;
+}
 
 void ObjectNode__do(ObjectNode* node, void (*func)(ObjectNode*)) {
     if (!node) { return; }

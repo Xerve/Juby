@@ -8,6 +8,7 @@ void Prelude__Any__init(void) {
     Object__set(t_Any, "name", Object__nFunction(Any__name));
     Object__set(t_Any, "type", Object__nFunction(Any__type));
     Object__set(t_Any, "parent", Object__nFunction(Any__parent));
+    Object__set(t_Any, "is", Object__nFunction(Any__is));
 }
 
 Object* Any__name(int argc, Object* argv[]) {
@@ -34,6 +35,16 @@ Object* Any__parent(int argc, Object* argv[]) {
         return undefined;
     } else {
         return Object__getParent(argv[0]);
+    }
+}
+
+Object* Any__is(int argc, Object* argv[]) {
+    if (argc < 2) {
+        puts("Cannot compare type of nothing!");
+        return undefined;
+    } else {
+        bool res = Object__is(argv[0], argv[1]);
+        return Object__Boolean(res);
     }
 }
 

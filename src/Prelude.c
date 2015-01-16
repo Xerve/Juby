@@ -27,6 +27,8 @@ void Prelude__init(void) {
     Object__set(t_Prelude, "print", Object__nFunction(Prelude__print));
     Object__set(t_Prelude, "let", Object__nFunction(Prelude__let));
     Object__set(t_Prelude, "quit", Object__nFunction(Prelude__quit));
+    Object__set(t_Prelude, "panic", Object__nFunction(Prelude__panic));
+    Object__set(t_Prelude, "recover", Object__nFunction(Prelude__recover));
 }
 
 Object* Prelude__juby(int argc, Object* argv[]) {
@@ -58,12 +60,38 @@ Object* Prelude__let(int argc, Object* argv[]) {
         exit(1);
     }
 
-    Object__set(Object__getParent(argv[0]), Object__getName(argv[0]), argv[1]);
+    Object__set(Object__getParent(argv[0]), Object__getName(argv[0]), Object__copy(argv[1]));
     return argv[1];
 }
 
 Object* Prelude__quit(int argc, Object* argv[]) {
-    exit(0);
+    if (argc > 0) {
+        if (Object__is(argv[0], t_Number)) { exit(Object__getNumber(argv[0])); }
+        else { exit(1); }
+    } else {
+        exit(1);
+    }
 
     return undefined;
 }
+
+bool panic_state = false;
+char* panic_message = "Please ignore";
+
+Object* Prelude__panic(int argc, Object* argv[]) {
+    panic_state = true;
+    if (argc > 0) {
+        if (Object__is(argv[0], t_String)) {
+            panic_message = Object__getString(argv[0]);
+        }
+    }
+
+    return undefined;
+}
+
+Object* Prelude__recover(int argc, Object* argv[]) {
+    panic_state = false;
+    return undefined;
+}
+
+

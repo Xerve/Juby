@@ -30,14 +30,14 @@ extern Object __t_Prelude;
 
 void TYPE__INIT(void);
 
-inline bool Object__is(Object* object, Object* type);
-
 inline char* Object__getName(Object* object);
 inline void Object__setName(Object* object, char* name);
 inline Object* Object__getParent(Object* object);
 inline void Object__setParent(Object* object, Object* parent);
 inline Object* Object__getType(Object* object);
 inline void Object__setType(Object* object, Object* type);
+inline bool Object__getGC(Object* object);
+inline void Object__setGC(Object* object, bool gc);
 inline char* Object__getString(Object* object);
 inline bool Object__getBoolean(Object* object);
 inline double Object__getNumber(Object* object);
@@ -50,6 +50,9 @@ Object* Object__nFunction(nFunc value);
 Object* Object__Undefined(void);
 Object* Object__Object(Object* type);
 void Object__delete(Object* object);
+Object* Object__copy(Object* object);
+
+bool Object__is(Object* object, Object* type);
 
 void Object__set(Object* object, char* value, Object* attr);
 void Object__unset(Object* object, char* value);

@@ -92,6 +92,6 @@ Object* Scope__delete(Scope* scope) {
 }
 
 void Scope__destroy(Scope* scope) {
-    // Object* context = Scope__delete(scope);
-    // Object__delete(context);
+    Object* context = Scope__delete(scope);
+    Object__delete(context);
 }

@@ -130,6 +130,10 @@ Object* eval(Scope* scope, char* input) {
             }
 
             ret = Object__apply(eval(scope, tokens[0]), num_tokens - 1, args);
+
+            for (i = 0; i < num_tokens - 1; i++) {
+                if (!Object__getGC(args[i])) { Object__delete(args[i]); }
+            }
         }
 
         for (i = 0; i < position; ++i) {
