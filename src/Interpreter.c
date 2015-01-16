@@ -107,21 +107,6 @@ Object* eval(Scope* scope, char* input) {
             ret = undefined;
         } else if (!strcmp(tokens[0], "new")) {
             ret = Object__Object(t_Any);
-        } else if (!strcmp(tokens[0], "get")) {
-            if (num_tokens < 3) {
-                puts("Invalid 'get':");
-                return undefined;
-            } else {
-                ret = Object__get(eval(scope, tokens[1]), tokens[2]);
-            }
-        } else if (!strcmp(tokens[0], "set")) {
-            if (num_tokens < 4) {
-                puts("Invalid 'set':");
-                return undefined;
-            } else {
-                Object__set(eval(scope, tokens[1]), tokens[2], eval(scope, tokens[3]));
-                ret = eval(scope, tokens[1]);
-            }
         } else {
             Object* args[num_tokens - 1];
 
@@ -148,7 +133,7 @@ Object* eval(Scope* scope, char* input) {
     } else if (!strcmp(input, "false")) {
         return Object__Boolean(false);
     } else if (!strcmp(input, "undefined")) {
-        return Object__Undefined();
+        return undefined;
     } else if ((num = strtold(input, NULL))) {
         return Object__Number(num);
     } else if (input[0] == '0') {

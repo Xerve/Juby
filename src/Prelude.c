@@ -9,6 +9,8 @@ Scope* Prelude(void) {
     Prelude__init();
     Prelude__Any__init();
     Prelude__Number__init();
+    Prelude__Object__init();
+    Prelude__Array__init();
     Object* p = Object__Object(t_Prelude);
     Object__set(p, "Any", t_Any);
     Object__set(p, "Undefined", t_Undefined);
@@ -17,6 +19,8 @@ Scope* Prelude(void) {
     Object__set(p, "Number", t_Number);
     Object__set(p, "Function", t_Function);
     Object__set(p, "Prelude", t_Prelude);
+    Object__set(p, "Object", t_Object);
+    Object__set(p, "Array", t_Array);
 
     Scope* s = Scope__create(p);
     return s;
@@ -26,7 +30,7 @@ void Prelude__init(void) {
     Object__set(t_Prelude, "juby", Object__nFunction(Prelude__juby));
     Object__set(t_Prelude, "print", Object__nFunction(Prelude__print));
     Object__set(t_Prelude, "let", Object__nFunction(Prelude__let));
-    Object__set(t_Prelude, "quit", Object__nFunction(Prelude__quit));
+    Object__set(t_Prelude, "exit", Object__nFunction(Prelude__exit));
     Object__set(t_Prelude, "panic", Object__nFunction(Prelude__panic));
     Object__set(t_Prelude, "recover", Object__nFunction(Prelude__recover));
 }
@@ -64,7 +68,7 @@ Object* Prelude__let(int argc, Object* argv[]) {
     return argv[1];
 }
 
-Object* Prelude__quit(int argc, Object* argv[]) {
+Object* Prelude__exit(int argc, Object* argv[]) {
     if (argc > 0) {
         if (Object__is(argv[0], t_Number)) { exit(Object__getNumber(argv[0])); }
         else { exit(1); }
@@ -93,5 +97,3 @@ Object* Prelude__recover(int argc, Object* argv[]) {
     panic_state = false;
     return undefined;
 }
-
-

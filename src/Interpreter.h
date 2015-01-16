@@ -3,6 +3,7 @@
 
 #include "Object.h"
 #include "Scope.h"
+#include "Prelude.h"
 
 #define isNullChar(X) (iscntrl(X) || isspace(X))
 

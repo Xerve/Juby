@@ -5,9 +5,9 @@
 
 void Prelude__Any__init(void);
 
-Object* Any__name(int argc, Object* argv[]);
-Object* Any__type(int argc, Object* argv[]);
-Object* Any__parent(int argc, Object* argv[]);
-Object* Any__is(int argc, Object* argv[]);
+Object* Prelude__Any__name(int argc, Object* argv[]);
+Object* Prelude__Any__type(int argc, Object* argv[]);
+Object* Prelude__Any__parent(int argc, Object* argv[]);
+Object* Prelude__Any__is(int argc, Object* argv[]);
 
 #endif

@@ -5,13 +5,13 @@
 #include "Prelude__Number.h"
 
 void Prelude__Number__init(void) {
-    Object__set(t_Number, "+", Object__nFunction(Number__add));
-    Object__set(t_Number, "-", Object__nFunction(Number__sub));
-    Object__set(t_Number, "*", Object__nFunction(Number__mul));
-    Object__set(t_Number, "/", Object__nFunction(Number__div));
+    Object__set(t_Number, "+", Object__nFunction(Prelude__Number__add));
+    Object__set(t_Number, "-", Object__nFunction(Prelude__Number__sub));
+    Object__set(t_Number, "*", Object__nFunction(Prelude__Number__mul));
+    Object__set(t_Number, "/", Object__nFunction(Prelude__Number__div));
 }
 
-Object* Number__add(int argc, Object* argv[]) {
+Object* Prelude__Number__add(int argc, Object* argv[]) {
     if (argc < 2) {
         puts("Cannot add less than two numbers!");
         return undefined;
@@ -36,7 +36,7 @@ Object* Number__add(int argc, Object* argv[]) {
 
     return Object__Number(ret);
 }
-Object* Number__sub(int argc, Object* argv[]) {
+Object* Prelude__Number__sub(int argc, Object* argv[]) {
     if (argc < 2) {
         puts("Cannot subtract less than two numbers!");
         return undefined;
@@ -62,7 +62,7 @@ Object* Number__sub(int argc, Object* argv[]) {
     return Object__Number(ret);
 }
 
-Object* Number__mul(int argc, Object* argv[]) {
+Object* Prelude__Number__mul(int argc, Object* argv[]) {
     if (argc < 2) {
         puts("Cannot multiply less than two numbers!");
         return undefined;
@@ -88,7 +88,7 @@ Object* Number__mul(int argc, Object* argv[]) {
     return Object__Number(ret);
 }
 
-Object* Number__div(int argc, Object* argv[]) {
+Object* Prelude__Number__div(int argc, Object* argv[]) {
     if (argc < 2) {
         puts("Cannot divide less than two numbers!");
         return undefined;

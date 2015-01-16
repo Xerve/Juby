@@ -35,8 +35,10 @@ Object __t_Boolean = {false, true, t_Any, NULL, NULL, NULL};
 Object __t_Number = {false, true, t_Any, NULL, NULL, NULL};
 Object __t_Function = {false, true, t_Any, NULL, NULL, NULL};
 Object __t_Prelude = {false, true, t_Any, NULL, NULL, NULL};
+Object __t_Object = {false, true, t_Any, NULL, NULL, NULL};
+Object __t_Array = {false, true, t_Object, NULL, NULL, NULL};
 
-Object __undefined = {true, t_Undefined, "undefined", NULL, NULL};
+Object __undefined = {true, true, t_Undefined, "undefined", NULL, NULL};
 
 void TYPE__INIT(void) {
     __t_Any.value.node = ObjectNode__create();
@@ -46,6 +48,8 @@ void TYPE__INIT(void) {
     __t_Number.value.node = ObjectNode__create();
     __t_Function.value.node = ObjectNode__create();
     __t_Prelude.value.node = ObjectNode__create();
+    __t_Object.value.node = ObjectNode__create();
+    __t_Array.value.node = ObjectNode__create();
 }
 
 inline char* Object__getName(Object* object) { return object->name; }
@@ -213,6 +217,7 @@ Object* Object__copy(Object* object) {
 }
 
 bool Object__is(Object* object, Object* type) {
+    if (!object) { return false; }
     if (object->type == t_Any) {
         return type == t_Any;
     } else if (object->type == type) {
@@ -240,6 +245,19 @@ void Object__unset(Object* object, char* value) {
     if (object->native) { puts("Cannot unset on native object!"); exit(1); }
     Object__delete(Object__get(object, value));
     ObjectNode__set(object->value.node, value, undefined);
+}
+
+bool Object__has(Object* object, char* value) {
+    if (!object) { return false; }
+    if (!value) { return false; }
+
+    if (!object->native) {
+        Object* ret = ObjectNode__get(object->value.node, value);
+        if (!ret) { return false; }
+        else {return true; }
+    } else {
+        return false;
+    }
 }
 
 Object* Object__getFromType(Object* object, char* value) {
@@ -294,9 +312,11 @@ Object* Object__apply(Object* object, int argc, Object* argv[]) {
         } else {
             return undefined; // User defined functions
         }
-    } else {
-        return object;
+    } else if (Object__has(object, object->name)) {
+       return Object__apply(Object__get(object, object->name), argc, argv);
     }
+
+    return object;
 }
 
 static int indentation = 0;
@@ -309,14 +329,14 @@ void Object__print(Object* object) {
         printf("'%s'\n", object->value.string);
     } else if (Object__is(object, t_Boolean)) {
         if (object->value.boolean) {
-            puts("true");
+            puts("<true>");
         } else {
-            puts("false");
+            puts("<false>");
         }
     } else if (Object__is(object, t_Function)) {
         puts("<Function>");
     } else if (Object__is(object, t_Undefined)) {
-        puts("undefined");
+        puts("<undefined>");
     } else {
         printf("{ [%s]\n", object->type->name);
         ObjectNode__print(object->value.node, ++indentation);

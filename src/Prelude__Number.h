@@ -5,9 +5,9 @@
 
 void Prelude__Number__init(void);
 
-Object* Number__add(int argc, Object* argv[]);
-Object* Number__sub(int argc, Object* argv[]);
-Object* Number__mul(int argc, Object* argv[]);
-Object* Number__div(int argc, Object* argv[]);
+Object* Prelude__Number__add(int argc, Object* argv[]);
+Object* Prelude__Number__sub(int argc, Object* argv[]);
+Object* Prelude__Number__mul(int argc, Object* argv[]);
+Object* Prelude__Number__div(int argc, Object* argv[]);
 
 #endif

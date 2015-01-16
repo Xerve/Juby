@@ -11,6 +11,8 @@
 #define t_Number &__t_Number
 #define t_Function &__t_Function
 #define t_Prelude &__t_Prelude
+#define t_Object &__t_Object
+#define t_Array &__t_Array
 
 typedef struct _Object Object;
 typedef struct _Function Function;
@@ -27,6 +29,8 @@ extern Object __t_Boolean;
 extern Object __t_Number;
 extern Object __t_Function;
 extern Object __t_Prelude;
+extern Object __t_Object;
+extern Object __t_Array;
 
 void TYPE__INIT(void);
 
@@ -56,6 +60,7 @@ bool Object__is(Object* object, Object* type);
 
 void Object__set(Object* object, char* value, Object* attr);
 void Object__unset(Object* object, char* value);
+bool Object__has(Object* object, char* value);
 Object* Object__get(Object* object, char* value);
 Object* Object__apply(Object* object, int argc, Object* argv[]);
 void Object__print(Object* object);
