@@ -238,6 +238,7 @@ void Object__unset(Object* object, char* value) {
     if (!object) { puts("Cannot unset property of empty object!"); exit(1); }
     if (!value) { puts("Cannot unset empty key on object!"); exit(1); }
     if (object->native) { puts("Cannot unset on native object!"); exit(1); }
+    Object__delete(Object__get(object, value));
     ObjectNode__set(object->value.node, value, undefined);
 }
 
