@@ -16,7 +16,7 @@ Alternatively, you can run a file the the `-y` flag, so for example
 
     ./juby.out -y examples/person.y
 
-## TODO
+## Language Features
 
 [X] Object system
 
@@ -26,11 +26,11 @@ Alternatively, you can run a file the the `-y` flag, so for example
 
 [X] Run files
 
-[ ] Copy objects
+[X] Copy objects
 
-[ ] Object literals
+[X] Object literals
 
-[ ] Arrays and array literals
+[X] Arrays and array literals
 
 [X] Function objects
 
