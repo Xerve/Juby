@@ -8,7 +8,8 @@ void Prelude__Array__init(void) {
     Object__set(t_Array, "Array", Object__nFunction(Prelude__Array__Array));
     Object__set(t_Array, "get", Object__nFunction(Prelude__Array__get));
     Object__set(t_Array, "push", Object__nFunction(Prelude__Array__push));
-    // Object__set(t_Array, "pop", Object__nFunction(Array__pop));
+    Object__set(t_Array, "pop", Object__nFunction(Array__pop));
+    Object__set(t_Array, "__print__", Object__nFunction(Array__print));
 }
 
 Object* Prelude__Array__Array(int argc, Object* argv[]) {
@@ -61,4 +62,45 @@ Object* Prelude__Array__push(int argc, Object* argv[]) {
     return argv[0];
 }
 
-// Object* Array__pop(int argc, Object* argv[]);
+Object* Array__pop(int argc, Object* argv[]) {
+    if (argc < 1) { return undefined; }
+
+    if (!Object__is(argv[0], t_Array)) {
+        puts("Cannot Array#pop to non-Array!");
+        exit(1);
+    }
+
+    char buffer[20];
+    double length = Object__getNumber(Object__get(argv[0], "length"));
+    sprintf(buffer, "%.0f", length - 1);
+    Object__unset(argv[0], "length");
+    Object__set(argv[0], "length", Object__Number(length - 1));
+    Object__unset(argv[0], buffer);
+
+    return argv[0];
+}
+
+Object* Array__print(int argc, Object* argv[]) {
+    if (argc < 1) { return undefined; }
+
+    if (!Object__is(argv[0], t_Array)) {
+        puts("Cannot Array#print to non-Array!");
+        exit(1);
+    }
+
+    printf("[");
+
+    int i;
+    char buffer[20];
+    double length = Object__getNumber(Object__get(argv[0], "length"));
+
+    for (i = 0; i < length; ++i) {
+        sprintf(buffer, "%d", i);
+        Object__print(Object__get(argv[0], buffer));
+
+        if (i != length - 1) { printf(", "); }
+    }
+
+    printf("]");
+    return argv[0];
+}

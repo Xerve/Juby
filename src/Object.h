@@ -61,6 +61,8 @@ bool Object__is(Object* object, Object* type);
 void Object__set(Object* object, char* value, Object* attr);
 void Object__unset(Object* object, char* value);
 bool Object__has(Object* object, char* value);
+bool Object__hasWithType(Object* object, char* value);
+Object* Object__in(Object* object, char* value);
 Object* Object__get(Object* object, char* value);
 Object* Object__apply(Object* object, int argc, Object* argv[]);
 void Object__print(Object* object);

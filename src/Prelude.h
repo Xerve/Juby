@@ -4,6 +4,7 @@
 #include "Interpreter.h"
 
 #include "Prelude__Any.h"
+#include "Prelude__Boolean.h"
 #include "Prelude__Number.h"
 #include "Prelude__Object.h"
 #include "Prelude__Array.h"

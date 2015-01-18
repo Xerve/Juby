@@ -7,20 +7,27 @@
 Scope* Prelude(void) {
     TYPE__INIT();
     Prelude__init();
-    Prelude__Any__init();
-    Prelude__Number__init();
-    Prelude__Object__init();
-    Prelude__Array__init();
     Object* p = Object__Object(t_Prelude);
+    Object__set(p, "Prelude", t_Prelude);
+
+    Prelude__Any__init();
     Object__set(p, "Any", t_Any);
+
+    Prelude__Number__init();
+    Object__set(p, "Number", t_Number);
+
+    Prelude__Object__init();
+    Object__set(p, "Object", t_Object);
+
+    Prelude__Array__init();
+    Object__set(p, "Array", t_Array);
+
+    Prelude__Boolean__init();
+    Object__set(p, "Boolean", t_Boolean);
+
     Object__set(p, "Undefined", t_Undefined);
     Object__set(p, "String", t_String);
-    Object__set(p, "Boolean", t_Boolean);
-    Object__set(p, "Number", t_Number);
     Object__set(p, "Function", t_Function);
-    Object__set(p, "Prelude", t_Prelude);
-    Object__set(p, "Object", t_Object);
-    Object__set(p, "Array", t_Array);
 
     Scope* s = Scope__create(p);
     return s;

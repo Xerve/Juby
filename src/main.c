@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
             if (!strcmp(input, ":quit")) { break; }
             Object__print(eval(scope, input));
             memset(input, '\0', strlen(input));
-            printf("\n>>> ");
+            printf("\n\n>>> ");
         }
     } else {
         int i;

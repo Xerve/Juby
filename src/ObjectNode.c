@@ -120,11 +120,14 @@ Object* ObjectNode__get(ObjectNode* root, char* value) {
 
 static int __indentation = 0;
 static void _ObjectNode__print(ObjectNode* node) {
-    int i;
-    for (i = 0; i < __indentation; ++i) { printf("  "); }
+    if (node->object && node->object != undefined) {
+        int i;
+        for (i = 0; i < __indentation; ++i) { printf("  "); }
 
-    printf("%s: ", node->value);
-    if (node->object) { Object__print(node->object); }
+        printf("%s: ", node->value);
+        Object__print(node->object);
+        printf("\n");
+    }
 }
 void ObjectNode__print(ObjectNode* root, int indentation) {
     if (!root) { return; }

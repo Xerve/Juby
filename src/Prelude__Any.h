@@ -9,5 +9,6 @@ Object* Prelude__Any__name(int argc, Object* argv[]);
 Object* Prelude__Any__type(int argc, Object* argv[]);
 Object* Prelude__Any__parent(int argc, Object* argv[]);
 Object* Prelude__Any__is(int argc, Object* argv[]);
+Object* Prelude__Any__in(int argc, Object* argv[]);
 
 #endif

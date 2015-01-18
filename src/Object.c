@@ -74,7 +74,7 @@ inline char* Object__getString(Object* object) {
 }
 
 inline bool Object__getBoolean(Object* object) {
-    if (!Object__is(object, t_String)) { puts("Cannot get Boolean of non-Boolean type!"); exit(1); }
+    if (!Object__is(object, t_Boolean)) { puts("Cannot get Boolean of non-Boolean type!"); exit(1); }
     return object->value.boolean;
 }
 
@@ -166,22 +166,20 @@ Object* Object__Object(Object* type) {
 void Object__delete(Object* object) {
     if (!object) { return; }
 
-    if (object != undefined) {
-        if (!object->native) {
-            free(object->type);
-            ObjectNode__delete(object->value.node);
-        } else if (Object__is(object, t_String)) {
-            free(object->value.string);
-        } else if (Object__is(object, t_Function)) {
-            if (!object->value.function->native) {
-                free(object->value.function->value.uf);
-            }
-
-            free(object->value.function);
+    if (!object->native) {
+        ObjectNode__delete(object->value.node);
+    } else if (Object__is(object, t_String)) {
+        free(object->value.string);
+    } else if (Object__is(object, t_Function)) {
+        if (!object->value.function->native) {
+            free(object->value.function->value.uf);
         }
 
-        free(object);
+        free(object->value.function);
     }
+
+    if (object->name) { free(object->name); }
+    free(object);
 }
 
 Object* Object__copy(Object* object) {
@@ -253,11 +251,35 @@ bool Object__has(Object* object, char* value) {
 
     if (!object->native) {
         Object* ret = ObjectNode__get(object->value.node, value);
+
         if (!ret) { return false; }
         else {return true; }
     } else {
         return false;
     }
+}
+
+bool Object__hasWithType(Object* object, char* value) {
+    if (!object) { return false; }
+    if (!value) { return false; }
+
+    if (!object->native) {
+        Object* ret = ObjectNode__get(object->value.node, value);
+
+        if (!ret) {
+                if (object == t_Any) {
+                    return false;
+                } else {
+                    return Object__hasWithType(object->type, value);
+                }
+        } else { return true; }
+    } else {
+        return Object__hasWithType(object->type, value);
+    }
+}
+
+Object* Object__in(Object* object, char* value) {
+    return Object__Boolean(Object__hasWithType(object, value));
 }
 
 Object* Object__getFromType(Object* object, char* value) {
@@ -323,20 +345,28 @@ static int indentation = 0;
 void Object__print(Object* object) {
     if (!object) { return; }
 
+    if (Object__hasWithType(object->type, "__print__")) {
+        Object* __print__ = Object__get(object, "__print__");
+        if (Object__is(__print__, t_Function)) {
+            Object__apply(__print__, 1, &object);
+            return;
+        }
+    }
+
     if (Object__is(object, t_Number)) {
-        printf("%g\n", object->value.number);
+        printf("%g", object->value.number);
     } else if (Object__is(object, t_String)) {
-        printf("'%s'\n", object->value.string);
+        printf("'%s'", object->value.string);
     } else if (Object__is(object, t_Boolean)) {
         if (object->value.boolean) {
-            puts("<true>");
+            printf("<true>");
         } else {
-            puts("<false>");
+            printf("<false>");
         }
     } else if (Object__is(object, t_Function)) {
-        puts("<Function>");
+        printf("<Function>");
     } else if (Object__is(object, t_Undefined)) {
-        puts("<undefined>");
+        printf("<undefined>");
     } else {
         printf("{ [%s]\n", object->type->name);
         ObjectNode__print(object->value.node, ++indentation);
@@ -346,7 +376,7 @@ void Object__print(Object* object) {
         for (i = 0; i < indentation; ++i) {
             printf("  ");
         }
-        puts("}");
+        printf("}");
     }
 }
 
