@@ -41,6 +41,12 @@ void ObjectNode__delete(ObjectNode* node) {
     free(node);
 }
 
+bool ObjectNode__equals(ObjectNode* a, ObjectNode* b) {
+    if (a == b) { return true; }
+    if (!a || !b) { return false; }
+    return Object__equals(a->left->object, b->left->object) && Object__equals(a->right->object, b->right->object);
+}
+
 ObjectNode* ObjectNode__copy(ObjectNode* node) {
     if (!node) { return NULL; }
     if (!node->value) { return ObjectNode__create(); }

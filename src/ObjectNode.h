@@ -10,7 +10,8 @@ inline Object* ObjectNode__getObject(ObjectNode* node);
 
 ObjectNode* ObjectNode__create(void);
 void ObjectNode__free(ObjectNode* node);
-void ObjectNode__delete(ObjectNode*node);
+void ObjectNode__delete(ObjectNode* node);
+bool ObjectNode__equals(ObjectNode* a, ObjectNode* b);
 ObjectNode* ObjectNode__copy(ObjectNode* node);
 
 void ObjectNode__do(ObjectNode* node, void (*func)(ObjectNode*));

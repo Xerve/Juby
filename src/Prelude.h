@@ -17,8 +17,4 @@ Object* Prelude__juby(int argc, Object* argv[]);
 Object* Prelude__print(int argc, Object* argv[]);
 Object* Prelude__let(int argc, Object* argv[]);
 Object* Prelude__exit(int argc, Object* argv[]);
-Object* Prelude__panic(int argc, Object* argv[]);
-Object* Prelude__recover(int argc, Object* argv[]);
-
-extern bool panic_state;
-extern char* panic_message;
+Object* Prelude__if(int argc, Object* argv[]);

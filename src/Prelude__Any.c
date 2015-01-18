@@ -9,7 +9,8 @@ void Prelude__Any__init(void) {
     Object__set(t_Any, "type", Object__nFunction(Prelude__Any__type));
     Object__set(t_Any, "parent", Object__nFunction(Prelude__Any__parent));
     Object__set(t_Any, "is", Object__nFunction(Prelude__Any__is));
-    Object__set(t_Any, "in", Object__nFunction(Prelude__Any__in));
+    Object__set(t_Any, "has", Object__nFunction(Prelude__Any__has));
+    Object__set(t_Any, "==", Object__nFunction(Prelude__Any__equals));
 }
 
 Object* Prelude__Any__name(int argc, Object* argv[]) {
@@ -48,29 +49,26 @@ Object* Prelude__Any__is(int argc, Object* argv[]) {
     }
 }
 
-Object* Prelude__Any__in(int argc, Object* argv[]) {
+Object* Prelude__Any__has(int argc, Object* argv[]) {
     if (argc != 2) {
-        puts("Cannot 'in' less than two args!");
+        puts("Cannot 'has' less than two args!");
         return undefined;
     } else {
-        if (!Object__is(argv[0], t_String)) {
-            puts("Can on 'in' on Strings!");
+        if (!Object__is(argv[1], t_String)) {
+            puts("Can only 'has' on Strings!");
             return undefined;
         } else {
-            if (Object__hasWithType(argv[1], "__in__")) {
-                Object* __in__ = Object__get(argv[1], "__in__");
-                if (Object__is(__in__, t_Function)) {
-                    Object* swp = argv[0];
-                    argv[0] = argv[1];
-                    argv[1] = swp;
-                    return Object__apply(__in__, 2, argv);
-                }
-            }
-
-            return Object__in(argv[1], Object__getString(argv[0]));
+            return Object__Boolean(Object__hasWithType(argv[0], Object__getString(argv[1])));
         }
     }
+}
 
-
+Object* Prelude__Any__equals(int argc, Object* argv[]) {
+    if (argc != 2) {
+        puts("Cannot compare not two values!");
+        return undefined;
+    } else {
+        return Object__Boolean(Object__equals(argv[0], argv[1]));
+    }
 }
 

@@ -246,7 +246,7 @@ void Object__unset(Object* object, char* value) {
 }
 
 bool Object__has(Object* object, char* value) {
-    if (!object) { return false; }
+    if (object == NULL) { return false; }
     if (!value) { return false; }
 
     if (!object->native) {
@@ -266,7 +266,7 @@ bool Object__hasWithType(Object* object, char* value) {
     if (!object->native) {
         Object* ret = ObjectNode__get(object->value.node, value);
 
-        if (!ret) {
+        if (!ret && ret != undefined) {
                 if (object == t_Any) {
                     return false;
                 } else {
@@ -276,10 +276,6 @@ bool Object__hasWithType(Object* object, char* value) {
     } else {
         return Object__hasWithType(object->type, value);
     }
-}
-
-Object* Object__in(Object* object, char* value) {
-    return Object__Boolean(Object__hasWithType(object, value));
 }
 
 Object* Object__getFromType(Object* object, char* value) {
@@ -327,6 +323,30 @@ Object* Object__get(Object* object, char* value) {
     }
 }
 
+bool Object__equals(Object* a, Object* b) {
+    if (a == b) { return true; }
+    if (!a || !b) { return false; }
+    if (a->type != b->type) { return false; }
+
+    if (a->native && b->native) {
+        if (Object__is(a, t_Number)) {
+            return Object__getNumber(a) == Object__getNumber(b);
+        } else if (Object__is(a, t_Boolean)) {
+            return Object__getBoolean(a) == Object__getBoolean(b);
+        } else if (Object__is(a, t_String)) {
+            return strcmp(Object__getString(a), Object__getString(b)) == 0;
+        } else if (Object__is(a, t_Undefined)) {
+            return true;
+        } else if (Object__is(a, t_Function)) {
+            return true;
+        } else {
+            return false;
+        }
+    } else {
+        return ObjectNode__equals(a->value.node, b->value.node);
+    }
+}
+
 Object* Object__apply(Object* object, int argc, Object* argv[]) {
     if (Object__is(object, t_Function)) {
         if (object->value.function->native) {
@@ -343,15 +363,7 @@ Object* Object__apply(Object* object, int argc, Object* argv[]) {
 
 static int indentation = 0;
 void Object__print(Object* object) {
-    if (!object) { return; }
-
-    if (Object__hasWithType(object->type, "__print__")) {
-        Object* __print__ = Object__get(object, "__print__");
-        if (Object__is(__print__, t_Function)) {
-            Object__apply(__print__, 1, &object);
-            return;
-        }
-    }
+    if (object == NULL) { return; }
 
     if (Object__is(object, t_Number)) {
         printf("%g", object->value.number);

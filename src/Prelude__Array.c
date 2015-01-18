@@ -9,7 +9,7 @@ void Prelude__Array__init(void) {
     Object__set(t_Array, "get", Object__nFunction(Prelude__Array__get));
     Object__set(t_Array, "push", Object__nFunction(Prelude__Array__push));
     Object__set(t_Array, "pop", Object__nFunction(Array__pop));
-    Object__set(t_Array, "__print__", Object__nFunction(Array__print));
+    Object__set(t_Array, "print", Object__nFunction(Array__print));
 }
 
 Object* Prelude__Array__Array(int argc, Object* argv[]) {

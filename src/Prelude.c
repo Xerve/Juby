@@ -38,8 +38,7 @@ void Prelude__init(void) {
     Object__set(t_Prelude, "print", Object__nFunction(Prelude__print));
     Object__set(t_Prelude, "let", Object__nFunction(Prelude__let));
     Object__set(t_Prelude, "exit", Object__nFunction(Prelude__exit));
-    Object__set(t_Prelude, "panic", Object__nFunction(Prelude__panic));
-    Object__set(t_Prelude, "recover", Object__nFunction(Prelude__recover));
+    Object__set(t_Prelude, "if", Object__nFunction(Prelude__if));
 }
 
 Object* Prelude__juby(int argc, Object* argv[]) {
@@ -56,6 +55,7 @@ Object* Prelude__print(int argc, Object* argv[]) {
         return argv[0];
     }
 
+    printf("\n");
     return undefined;
 }
 
@@ -86,21 +86,25 @@ Object* Prelude__exit(int argc, Object* argv[]) {
     return undefined;
 }
 
-bool panic_state = false;
-char* panic_message = "Please ignore";
-
-Object* Prelude__panic(int argc, Object* argv[]) {
-    panic_state = true;
-    if (argc > 0) {
-        if (Object__is(argv[0], t_String)) {
-            panic_message = Object__getString(argv[0]);
-        }
+Object* Prelude__if(int argc, Object* argv[]) {
+    if (argc < 2) {
+        puts("Cannot if with two values!");
+        return undefined;
     }
 
-    return undefined;
+    if (!Object__is(argv[0], t_Boolean)) {
+        puts("Cannot if with non-Boolean value");
+        return undefined;
+    }
+
+    if (Object__getBoolean(argv[0])) {
+        return argv[1];
+    } else {
+        if (argc == 3) {
+            return argv[2];
+        } else {
+            return undefined;
+        }
+    }
 }
 
-Object* Prelude__recover(int argc, Object* argv[]) {
-    panic_state = false;
-    return undefined;
-}
