@@ -1,0 +1,19 @@
+(juby 
+    (let hw 'hello world')
+    (print hw)
+    
+    (let person (Object
+                    'name' (Object
+                                'first' 'Ryan'
+                                'last'  'Delaney'
+                            )
+                    
+                    'favorites' (Object
+                                    'foods' (Array 'pizza' 'hot dogs')
+                                    'color' 'blue'
+                                )
+                ))
+    
+    (person.name.first.print)
+    (person.favorites.pizza.print)
+)
