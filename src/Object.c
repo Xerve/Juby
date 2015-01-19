@@ -16,6 +16,7 @@ struct _Function {
 struct _Object {
     bool native;
     bool gc;
+    bool stack;
     Object* type;
     char* name;
     Object* parent;
@@ -28,28 +29,28 @@ struct _Object {
     } value;
 };
 
-Object __t_Any = {false, true, t_Any, NULL, NULL, NULL};
-Object __t_Undefined = {false, true, t_Any, NULL, NULL, NULL};
-Object __t_String = {false, true, t_Any, NULL, NULL, NULL};
-Object __t_Boolean = {false, true, t_Any, NULL, NULL, NULL};
-Object __t_Number = {false, true, t_Any, NULL, NULL, NULL};
-Object __t_Function = {false, true, t_Any, NULL, NULL, NULL};
-Object __t_Prelude = {false, true, t_Any, NULL, NULL, NULL};
-Object __t_Object = {false, true, t_Any, NULL, NULL, NULL};
-Object __t_Array = {false, true, t_Object, NULL, NULL, NULL};
-
-Object __undefined = {true, true, t_Undefined, "undefined", NULL, NULL};
+STACK_OBJECT_INIT(t_Any);
+STACK_OBJECT_INIT(t_Undefined);
+STACK_OBJECT_INHERITS(undefined, t_Undefined);
+STACK_OBJECT_INIT(t_String);
+STACK_OBJECT_INIT(t_Boolean);
+STACK_OBJECT_INIT(t_Number);
+STACK_OBJECT_INIT(t_Function);
+STACK_OBJECT_INIT(t_Prelude);
+STACK_OBJECT_INIT(t_Object);
+STACK_OBJECT_INIT(t_Array);
 
 void TYPE__INIT(void) {
-    __t_Any.value.node = ObjectNode__create();
-    __t_Undefined.value.node = ObjectNode__create();
-    __t_String.value.node = ObjectNode__create();
-    __t_Boolean.value.node = ObjectNode__create();
-    __t_Number.value.node = ObjectNode__create();
-    __t_Function.value.node = ObjectNode__create();
-    __t_Prelude.value.node = ObjectNode__create();
-    __t_Object.value.node = ObjectNode__create();
-    __t_Array.value.node = ObjectNode__create();
+    STACK_OBJECT_RT(undefined);
+    STACK_OBJECT_RT(t_Any);
+    STACK_OBJECT_RT(t_Undefined);
+    STACK_OBJECT_RT(t_String);
+    STACK_OBJECT_RT(t_Boolean);
+    STACK_OBJECT_RT(t_Number);
+    STACK_OBJECT_RT(t_Function);
+    STACK_OBJECT_RT(t_Prelude);
+    STACK_OBJECT_RT(t_Object);
+    STACK_OBJECT_RT(t_Array);
 }
 
 inline char* Object__getName(Object* object) { return object->name; }
@@ -83,46 +84,52 @@ inline double Object__getNumber(Object* object) {
     return object->value.number;
 }
 
-Object* Object__String(char* value) {
+Object* Object__create(void) {
     Object* object = malloc(sizeof(Object));
     object->native = true;
     object->gc = false;
-    object->type = t_String;
+    object->stack = false;
     object->name = NULL;
     object->parent = NULL;
-    object->value.string = value;
+
+    return object;
+}
+
+Object* Object__String(char* value) {
+    Object* object = Object__create();
+    object->type = t_String;
+    object->value.string = malloc((strlen(value) + 1) * sizeof(char));
+    strcpy(object->value.string, value);
+
+    int len = strlen(value);
+    int i;
+    for (i = 0; i < len; ++i) {
+        if (object->value.string[i] == '\\' && i != len - 1 && object->value.string[i + 1] == 'n') {
+            object->value.string[i] = ' ';
+            object->value.string[i + 1] = '\n';
+        }
+    }
+
     return object;
 }
 
 Object* Object__Boolean(bool value) {
-    Object* object = malloc(sizeof(Object));
-    object->native = true;
-    object->gc = false;
+    Object* object = Object__create();
     object->type = t_Boolean;
-    object->name = NULL;
-    object->parent = NULL;
     object->value.boolean = value;
     return object;
 }
 
 Object* Object__Number(double value) {
-    Object* object = malloc(sizeof(Object));
-    object->native = true;
-    object->gc = false;
+    Object* object = Object__create();
     object->type = t_Number;
-    object->name = NULL;
-    object->parent = NULL;
     object->value.number = value;
     return object;
 }
 
 Object* Object__uFunction(char* value) {
-    Object* object = malloc(sizeof(Object));
-    object->native = true;
-    object->gc = false;
+    Object* object = Object__create();
     object->type = t_Function;
-    object->name = NULL;
-    object->parent = NULL;
     object->value.function = malloc(sizeof(Function));
     object->value.function->native = false;
     object->value.function->value.uf = malloc(sizeof((strlen(value) + 1) * sizeof(char)));
@@ -130,12 +137,8 @@ Object* Object__uFunction(char* value) {
 }
 
 Object* Object__nFunction(nFunc value) {
-    Object* object = malloc(sizeof(Object));
-    object->native = true;
-    object->gc = false;
+    Object* object = Object__create();
     object->type = t_Function;
-    object->name = NULL;
-    object->parent = NULL;
     object->value.function = malloc(sizeof(Function));
     object->value.function->native = true;
     object->value.function->value.nf = value;
@@ -143,12 +146,9 @@ Object* Object__nFunction(nFunc value) {
 }
 
 Object* Object__Undefined(void) {
-    Object* object = malloc(sizeof(Object));
-    object->native = true;
-    object->gc = false;
+    Object* object = Object__create();
     object->type = t_Undefined;
-    object->name = NULL;
-    object->parent = NULL;
+    object->value.node = NULL;
     return object;
 }
 
@@ -156,6 +156,7 @@ Object* Object__Object(Object* type) {
     Object* object = malloc(sizeof(Object));
     object->native = false;
     object->gc = false;
+    object->stack = false;
     object->type = type;
     object->name = NULL;
     object->parent = NULL;
@@ -179,7 +180,7 @@ void Object__delete(Object* object) {
     }
 
     if (object->name) { free(object->name); }
-    free(object);
+    if (!object->stack) { free(object); }
 }
 
 Object* Object__copy(Object* object) {
@@ -230,6 +231,8 @@ void Object__set(Object* object, char* value, Object* attr) {
     if (!value) { puts("Cannot set empty key on object!"); exit(1); }
     if (!attr) { puts("Cannot set NULL object on object!"); exit(1); }
     if (object->native) { puts("Cannot set on native object!"); exit(1); }
+    if (Object__has(object, value)) { Object__unset(object, value); }
+
     attr->name = malloc((strlen(value) + 1) * sizeof(char));
     attr->gc = true;
     strcpy(attr->name, value);
@@ -238,9 +241,9 @@ void Object__set(Object* object, char* value, Object* attr) {
 }
 
 void Object__unset(Object* object, char* value) {
-    if (!object) { puts("Cannot unset property of empty object!"); exit(1); }
-    if (!value) { puts("Cannot unset empty key on object!"); exit(1); }
-    if (object->native) { puts("Cannot unset on native object!"); exit(1); }
+    if (!object) { return; }
+    if (!value) { return; }
+    if (object->native) { return; }
     Object__delete(Object__get(object, value));
     ObjectNode__set(object->value.node, value, undefined);
 }
@@ -253,7 +256,8 @@ bool Object__has(Object* object, char* value) {
         Object* ret = ObjectNode__get(object->value.node, value);
 
         if (!ret) { return false; }
-        else {return true; }
+        else if (ret == undefined) { return false; }
+        else { return true; }
     } else {
         return false;
     }
@@ -368,7 +372,7 @@ void Object__print(Object* object) {
     if (Object__is(object, t_Number)) {
         printf("%g", object->value.number);
     } else if (Object__is(object, t_String)) {
-        printf("'%s'", object->value.string);
+        printf("%s", object->value.string);
     } else if (Object__is(object, t_Boolean)) {
         if (object->value.boolean) {
             printf("<true>");

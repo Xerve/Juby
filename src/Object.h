@@ -14,6 +14,11 @@
 #define t_Object &__t_Object
 #define t_Array &__t_Array
 
+#define STACK_OBJECT(X) extern Object __##X
+#define STACK_OBJECT_INIT(X) Object __##X = {false, true, true, t_Any, NULL, NULL, NULL}
+#define STACK_OBJECT_INHERITS(X, Y) Object __##X = {false, true, true, Y, NULL, NULL, NULL}
+#define STACK_OBJECT_RT(X) __##X.value.node = ObjectNode__create()
+
 typedef struct _Object Object;
 typedef struct _Function Function;
 
@@ -21,16 +26,16 @@ typedef struct _Function Function;
 
 typedef Object* (*nFunc)(int, Object**);
 
-extern Object __undefined;
-extern Object __t_Any;
-extern Object __t_Undefined;
-extern Object __t_String;
-extern Object __t_Boolean;
-extern Object __t_Number;
-extern Object __t_Function;
-extern Object __t_Prelude;
-extern Object __t_Object;
-extern Object __t_Array;
+STACK_OBJECT(undefined);
+STACK_OBJECT(t_Any);
+STACK_OBJECT(t_Undefined);
+STACK_OBJECT(t_String);
+STACK_OBJECT(t_Boolean);
+STACK_OBJECT(t_Number);
+STACK_OBJECT(t_Function);
+STACK_OBJECT(t_Prelude);
+STACK_OBJECT(t_Object);
+STACK_OBJECT(t_Array);
 
 void TYPE__INIT(void);
 
@@ -46,6 +51,7 @@ inline char* Object__getString(Object* object);
 inline bool Object__getBoolean(Object* object);
 inline double Object__getNumber(Object* object);
 
+Object* Object__create(void);
 Object* Object__String(char* value);
 Object* Object__Boolean(bool value);
 Object* Object__Number(double value);

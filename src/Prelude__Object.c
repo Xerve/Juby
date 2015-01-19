@@ -10,7 +10,7 @@ void Prelude__Object__init(void) {
 
 
 Object* Prelude__Object__Object(int argc, Object* argv[]) {
-    if (argc == 0) { return undefined; }
+    if (argc == 0) { return Object__Object(t_Object); }
     if (argc == 1) { return Object__Object(argv[0]); }
 
     if (argc % 2 == 0) {

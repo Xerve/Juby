@@ -28,6 +28,7 @@ Scope* Prelude(void) {
     Object__set(p, "Undefined", t_Undefined);
     Object__set(p, "String", t_String);
     Object__set(p, "Function", t_Function);
+    Object__set(p, "undefined", undefined);
 
     Scope* s = Scope__create(p);
     return s;
@@ -51,11 +52,9 @@ Object* Prelude__print(int argc, Object* argv[]) {
         Object__print(argv[i]);
     }
 
-    if (argc > 0) {
-        return argv[0];
-    }
-
     printf("\n");
+
+    if (argc > 0) { return argv[0]; }
     return undefined;
 }
 

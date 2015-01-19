@@ -105,8 +105,6 @@ Object* eval(Scope* scope, char* input) {
 
         if (num_tokens == 0) {
             ret = undefined;
-        } else if (!strcmp(tokens[0], "new")) {
-            ret = Object__Object(t_Any);
         } else {
             Object* args[num_tokens - 1];
 
@@ -127,13 +125,14 @@ Object* eval(Scope* scope, char* input) {
 
         return ret;
     } else if (input[0] == '\'' && input[len - 1] == '\'') {
-        return Object__String(substring(input, 2, len - 2));
+        char* token = substring(input, 2, len - 2);
+        Object* ret = Object__String(token);
+        free(token);
+        return ret;
     } else if (!strcmp(input, "true")) {
         return Object__Boolean(true);
     } else if (!strcmp(input, "false")) {
         return Object__Boolean(false);
-    } else if (!strcmp(input, "undefined")) {
-        return undefined;
     } else if ((num = strtold(input, NULL))) {
         return Object__Number(num);
     } else if (input[0] == '0') {
@@ -141,90 +140,4 @@ Object* eval(Scope* scope, char* input) {
     } else {
         return Scope__getVariable(scope, input);
     }
-}
-
-Object* eval_lines(Scope* scope, char* input) {
-    int len = strlen(input);
-    int i;
-    int position = 0;
-    int start = 0;
-    int end = 0;
-    int num_tokens = 0;
-    bool in_str = false;
-    int paren_level = 0;
-    char last = '\0';
-
-    for(i = 0; i < len; ++i) {
-        if (paren_level >= 0) {
-            if (!isNullChar(input[i]) && (isNullChar(last) || num_tokens == 0) && !in_str && paren_level == 1 && input[i] != ')') {
-                ++num_tokens;
-            }
-
-            if (input[i] == '\'') {
-                in_str = !in_str;
-            } else if (input[i] == '(') {
-                ++paren_level;
-            } else if (input[i] == ')') {
-                --paren_level;
-            }
-
-            last = input[i];
-        }
-    }
-
-    if (paren_level > 0) {
-        puts("Too many \"(\"!");
-        return undefined;
-    } else if (paren_level < 0) {
-        puts("Too many \")\"!");
-        return undefined;
-    } else if (in_str) {
-        puts("Too many \"'\"!");
-        return undefined;
-    }
-    in_str = false;
-    paren_level = 0;
-    char* tokens[num_tokens];
-    for(i = 0; i < len; ++i) {
-        if (paren_level >= 0) {
-            if (!isNullChar(input[i]) && (isNullChar(last) || i == 1) && !in_str && paren_level == 1) {
-                start = i;
-            }
-
-            if (input[i] == '\'') {
-                in_str = !in_str;
-            } else if (input[i] == '(') {
-                ++paren_level;
-            } else if (input[i] == ')') {
-                --paren_level;
-            }
-
-            if (isNullChar(input[i]) && !isNullChar(last) && !in_str && paren_level == 1 && start != 0) {
-                end = i;
-            } else if (paren_level == 0 && start != 0) {
-                end = i;
-            }
-
-            if (start != 0 && end != 0) {
-                tokens[position] = substring(input, start + 1, end - start);
-                ++position;
-                start = 0;
-                end = 0;
-            }
-
-            last = input[i];
-        }
-    }
-
-    Object* ret = undefined;
-
-    for (i = 0; i < num_tokens; ++i) {
-        ret = eval(scope, tokens[i]);
-    }
-
-    for (i = 0; i < position; ++i) {
-        free(tokens[i]);
-    }
-
-    return ret;
 }

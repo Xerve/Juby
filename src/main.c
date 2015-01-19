@@ -53,16 +53,10 @@ int main(int argc, char** argv) {
                 } else {
                     puts("No input file given!");
                 }
-            } else if (!strcmp(argv[i], "-e")) {
-                if (i != argc - 1) {
-                    if (argv[i + 1][0] != '-') {
-                        Object__print(eval_lines(scope, argv[i + 1]));
-                    }
-                }
             } else if (!strcmp(argv[i], "-l")) {
                 if (i != argc - 1) {
                     if (argv[i + 1][0] != '-') {
-                        Object__print(eval(scope, argv[i + 1]));
+                        eval(scope, argv[i + 1]);
                     }
                 }
             }
