@@ -14,6 +14,6 @@
                                 )
                 ))
     
-    (person.name.first.print)
-    (person.favorites.pizza.print)
+    (print person.name.first)
+    (Array.print person.favorites.foods)
 )
