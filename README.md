@@ -1,5 +1,7 @@
 # Juby
 
+After spending far too long to figure out some memory problems, this project will be retired for a new, updated version coming soon!
+
 A programming language
 
 ## Y Lisp
