@@ -39,17 +39,17 @@ STACK_OBJECT(t_Array);
 
 void TYPE__INIT(void);
 
-inline char* Object__getName(Object* object);
-inline void Object__setName(Object* object, char* name);
-inline Object* Object__getParent(Object* object);
-inline void Object__setParent(Object* object, Object* parent);
-inline Object* Object__getType(Object* object);
-inline void Object__setType(Object* object, Object* type);
-inline bool Object__getGC(Object* object);
-inline void Object__setGC(Object* object, bool gc);
-inline char* Object__getString(Object* object);
-inline bool Object__getBoolean(Object* object);
-inline double Object__getNumber(Object* object);
+ char* Object__getName(Object* object);
+ void Object__setName(Object* object, char* name);
+ Object* Object__getParent(Object* object);
+ void Object__setParent(Object* object, Object* parent);
+ Object* Object__getType(Object* object);
+ void Object__setType(Object* object, Object* type);
+ bool Object__getGC(Object* object);
+ void Object__setGC(Object* object, bool gc);
+ char* Object__getString(Object* object);
+ bool Object__getBoolean(Object* object);
+ double Object__getNumber(Object* object);
 
 Object* Object__create(void);
 Object* Object__String(char* value);

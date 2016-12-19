@@ -14,8 +14,8 @@ struct _ObjectNode {
     Object* object;
 };
 
-inline char* ObjectNode__getValue(ObjectNode* node) { return node->value; }
-inline Object* ObjectNode__getObject(ObjectNode* node) { return node->object; }
+ char* ObjectNode__getValue(ObjectNode* node) { return node->value; }
+ Object* ObjectNode__getObject(ObjectNode* node) { return node->object; }
 
 ObjectNode* ObjectNode__create(void) {
     ObjectNode* node = malloc(sizeof(ObjectNode));

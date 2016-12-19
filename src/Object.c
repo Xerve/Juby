@@ -53,33 +53,33 @@ void TYPE__INIT(void) {
     STACK_OBJECT_RT(t_Array);
 }
 
-inline char* Object__getName(Object* object) { return object->name; }
-inline void Object__setName(Object* object, char* name) {
+ char* Object__getName(Object* object) { return object->name; }
+ void Object__setName(Object* object, char* name) {
     if (object->name) { free(object->name); }
     object->name = malloc((strlen(name) + 1) * sizeof(char));
     strcpy(object->name, name);
 }
 
-inline Object* Object__getParent(Object* object) { return object->parent; }
-inline void Object__setParent(Object* object, Object* parent) { object->parent = parent; }
+ Object* Object__getParent(Object* object) { return object->parent; }
+ void Object__setParent(Object* object, Object* parent) { object->parent = parent; }
 
-inline Object* Object__getType(Object* object) { return object->type; }
-inline void Object__setType(Object* object, Object* type) { object->type = type; }
+ Object* Object__getType(Object* object) { return object->type; }
+ void Object__setType(Object* object, Object* type) { object->type = type; }
 
-inline bool Object__getGC(Object* object) { return object->gc; }
-inline void Object__setGC(Object* object, bool gc) { object->gc = gc; }
+ bool Object__getGC(Object* object) { return object->gc; }
+ void Object__setGC(Object* object, bool gc) { object->gc = gc; }
 
-inline char* Object__getString(Object* object) {
+ char* Object__getString(Object* object) {
     if (!Object__is(object, t_String)) { puts("Cannot get String of non-String type!"); exit(1); }
     return object->value.string;
 }
 
-inline bool Object__getBoolean(Object* object) {
+ bool Object__getBoolean(Object* object) {
     if (!Object__is(object, t_Boolean)) { puts("Cannot get Boolean of non-Boolean type!"); exit(1); }
     return object->value.boolean;
 }
 
-inline double Object__getNumber(Object* object) {
+ double Object__getNumber(Object* object) {
     if (!Object__is(object, t_Number)) { puts("Cannot get Number of non-Number type!"); exit(1); }
     return object->value.number;
 }

@@ -5,8 +5,8 @@ typedef struct _ObjectNode ObjectNode;
 
 #include "Object.h"
 
-inline char* ObjectNode__getValue(ObjectNode* node);
-inline Object* ObjectNode__getObject(ObjectNode* node);
+ char* ObjectNode__getValue(ObjectNode* node);
+ Object* ObjectNode__getObject(ObjectNode* node);
 
 ObjectNode* ObjectNode__create(void);
 void ObjectNode__free(ObjectNode* node);
